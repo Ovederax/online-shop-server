@@ -36,6 +36,8 @@ public class UserController {
             response.addCookie(cookie);
             response.setStatus(HttpServletResponse.SC_OK);
             return userService.getUserInfo(token);
+            // REVU I don't think it is a good idea to catch your mistakes it in every method
+            // If you want to catch them, do it once in GlobalExceptionHandler
         } catch (ServerErrorException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
         } catch (ServerException e) {

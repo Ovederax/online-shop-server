@@ -22,6 +22,7 @@ CREATE TABLE clients (
   patronymic VARCHAR(50),
   email VARCHAR(50) NOT NULL,
   address VARCHAR(50) NOT NULL,
+# REVU phone
   telefon VARCHAR(50) NOT NULL,
   login VARCHAR(50) NOT NULL,
   password VARCHAR(50) NOT NULL,
@@ -43,13 +44,14 @@ CREATE TABLE categories (
   id INT(11) NOT NULL AUTO_INCREMENT,
   name VARCHAR(50) NOT NULL,
   parentId INT(11),
-
+# REVU FK parentId
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE goods_categories(
-	id INT(11) NOT NULL AUTO_INCREMENT,
+  id INT(11) NOT NULL AUTO_INCREMENT,
   goodsId INT(11) NOT NULL,
+# REVU categoryId
   cathegoryId INT(11) NOT NULL,
 
   UNIQUE KEY goods_categories(goodsId, cathegoryId),
@@ -58,6 +60,7 @@ CREATE TABLE goods_categories(
   PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+# REVU logged_users
 CREATE TABLE logined_users (
   id INT(11) NOT NULL AUTO_INCREMENT,
   name VARCHAR(50) NOT NULL,

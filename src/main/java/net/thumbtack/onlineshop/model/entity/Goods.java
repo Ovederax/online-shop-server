@@ -2,6 +2,9 @@ package net.thumbtack.onlineshop.model.entity;
 
 import java.util.List;
 
+// REVU I do not like this name
+// Goods - plural, so misunderstanding can be
+// Product is better
 public class Goods {
     private int id;
     private String name;

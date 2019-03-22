@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
+// REVU rename to UserDaoImpl
 public class DaoImplUser extends DaoImplBase implements UserDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(DaoImplUser.class);
 
@@ -55,6 +56,10 @@ public class DaoImplUser extends DaoImplBase implements UserDao {
 
     @Override
     public String login(String login, String password) throws UserException {
+    	// REVU DAO methods must not contain logic
+    	// they only transfer data model <-> database
+    	// move logic to service level
+    	// here and for other methods
         LOGGER.debug("UserDAO loginClient");
         String token = UUID.randomUUID().toString();
         try(SqlSession sqlSession = getSession()) {
@@ -105,6 +110,7 @@ public class DaoImplUser extends DaoImplBase implements UserDao {
                     }
                     // тут внутренняя ошибка сервера
                     // тк логин найден а данных по нему нет...
+                    // REVU How it can be ? It MUST not be
                     throw new RuntimeException();
                 } else {
                     throw new UserException(UserExceptionEnum.USER_IS_INACTIVE);
@@ -155,6 +161,8 @@ public class DaoImplUser extends DaoImplBase implements UserDao {
                 CommonMapper commonMapper = getCommonMapper(sqlSession);
                 UserMapper userMapper = getUserMapper(sqlSession);
                 userMapper.logout(token);
+                // Why do you need in this call ?
+                // simply vheck result of userMapper.logout, make it int
                 if(commonMapper.selectRowCount() != 1) {
                     throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
                 }

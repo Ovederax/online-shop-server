@@ -1,3 +1,4 @@
+// REVU net.thumbtack.onlineshop.dto.request.basket;
 package net.thumbtack.onlineshop.dto.request.baskets;
 
 public class AddGoodsInBasketsRequest {

@@ -81,6 +81,7 @@ public class AdministratorRegisterRequest {
      * русские буквы , пробелы и знак “минус” (используемый как тире).
      * */
     public List<ErrorContent> validate() {
+    	// REVU use interface, i.e. List<ErrorContent> list = new ArrayList<>();
         ArrayList<ErrorContent> list = new ArrayList<>();
         // нужно подумать как обобщить случаи, чтобы писать менше кода ...
         if(firstName == null || firstName.equals("")) {

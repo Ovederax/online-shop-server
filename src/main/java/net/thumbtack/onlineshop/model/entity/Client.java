@@ -25,6 +25,7 @@ public class Client {
     private String patronymic;
     private String email;
     private String address;
+    // REVU phone
     private String telefon;
     private int deposit;
     private String login;

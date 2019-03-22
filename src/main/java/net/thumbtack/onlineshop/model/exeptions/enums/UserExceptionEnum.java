@@ -1,5 +1,9 @@
 package net.thumbtack.onlineshop.model.exeptions.enums;
 
+// REVU seems you have plans to add other enums
+// what about next idea ?
+// convert this enum to ErrorCode and add additional field "type"
+// which will be "user" for these values and something else for other values
 public enum UserExceptionEnum {
     //VALIDATE ERROR
     BAD_FIRST_NAME  ("Your firsname is not correct"),

@@ -55,6 +55,7 @@ public class UserService {
     public String registerAdministrator(AdministratorRegisterRequest r) {
         try {
             List<ErrorContent> errors = r.validate();// валидация будет переделана через аннотации
+            // REVU и не стоит дальше в таком виде ее писать и тратить на это время
             if(errors.size() != 0) {
                 return gson.toJson(new ErrorResponse(errors));
             }

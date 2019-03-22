@@ -6,6 +6,7 @@ public class Category {
     private int id;
     private String name;
     private Category parent;
+    // REVU what about private List<Category> subCategories ?
 
     private List<Goods> goods;
 
