@@ -2,15 +2,13 @@ package net.thumbtack.onlineshop.service;
 
 import com.google.gson.Gson;
 import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.dto.UserInfo;
 import net.thumbtack.onlineshop.dto.request.user.*;
-import net.thumbtack.onlineshop.dto.response.ErrorContent;
-import net.thumbtack.onlineshop.dto.response.ErrorResponse;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
-import net.thumbtack.onlineshop.dto.response.user.GetClientsInfoResponse;
+import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Client;
+import net.thumbtack.onlineshop.model.entity.User;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.model.exeptions.UserException;
 import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
@@ -23,13 +21,8 @@ import java.util.UUID;
 @Service
 public class UserService {
     @Autowired private UserDao userDao;
-    private Gson gson;
 
-    public UserService() {
-        gson = new Gson();
-    }
-
-    /**
+    /** VALIDATION
     Логин может содержать только латинские и русские буквы и цифры и
     не может быть пустым.
      Пароль может содержать любые символы и тоже
@@ -47,74 +40,118 @@ public class UserService {
     регистрировался с логином “Иванов”, он может впоследствии заходить
     на сервер, используя логины “Иванов”, “иванов”, “иВаНоВ” и т.д.
 
-    Пароль является case-sensitive.
+    Пароль является case-sensitive.*/
 
-     Для зарегистрировавшегося администратора автоматически выполняется
-    операция “Login” (п.3.4)
-     */
-    public String registerAdministrator(AdministratorRegisterRequest r) {
-        try {
-            List<ErrorContent> errors = r.validate();// валидация будет переделана через аннотации
-            // REVU и не стоит дальше в таком виде ее писать и тратить на это время
-            if(errors.size() != 0) {
-                return gson.toJson(new ErrorResponse(errors));
-            }
-            userDao.registerAdministrator(new Administrator(r.getFirstName(), r.getLastName(),
-                    r.getPatronymic(), r.getPosition(), r.getLogin(), r.getPassword()));
-        }catch (ServerException ex) {
-            return gson.toJson(new ErrorResponse(null));
+    public void checkAdministratorPrivileges(String token) throws UserException {
+        User user = userDao.findUserByToken(token);
+        if(user == null) {
+            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
         }
-        //AdministratorInfoResponse
-        // +JAVASESSIONID скорее всего  через spring
-        // будет передаваться
-        return gson.toJson(null);
-    }
-
-    /** Для зарегистрировавшегося клиента автоматически выполняется операция “Login” (п.3.4)*/
-    public void registerClient(ClientRegisterRequest r) {
-        try {
-            userDao.registerClient(new Client(r.getFirstName(), r.getLastName(),
-                    r.getPatronymic(), r.getEmail(), r.getAddress(),
-                    r.getPhone(), r.getLogin(), r.getPassword()));
-        }catch (ServerException ex) {
-            //return gson.toJson(new ErrorResponse(null));
+        Administrator ad = userDao.findAdministratorById(user.getId());
+        if(ad == null) {
+            throw new UserException(UserExceptionEnum.YOU_NO_HAVE_THIS_PRIVILEGES);
         }
     }
+    public Client getClientByToken(String token) throws UserException {
+        User user = userDao.findUserByToken(token);
+        if(user == null) {
+            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+        }
+        Client c = userDao.findClientById(user.getId());
+        if(c == null) {
+            throw new UserException(UserExceptionEnum.USER_IS_NOT_CLIENT);
+        }
+        return c;
+    }
+    public void checkUserExistByToken(String token) throws UserException {
+        User user = userDao.findUserByToken(token);
+        if(user == null) {
+            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+        }
+    }
+
+    public void registerAdministrator(AdministratorRegisterRequest r) throws ServerException {
+        userDao.registerAdministrator(new Administrator(r.getFirstName(), r.getLastName(),
+                r.getPatronymic(), r.getPosition(), r.getLogin(), r.getPassword()));
+    }
+
+    public void registerClient(ClientRegisterRequest r) throws ServerException {
+        userDao.registerClient(new Client(r.getFirstName(), r.getLastName(),
+                r.getPatronymic(), r.getEmail(), r.getAddress(),
+                r.getPhone(), r.getLogin(), r.getPassword()));
+    }
+
     /** @return token in uuid format */
     public String login(UserLoginRequest r) throws ServerException {
-        return userDao.login(r.getLogin(), r.getPassword());
+        UUID token = UUID.randomUUID();
+        User user = userDao.findUserByLogin(r.getLogin());
+        if(user == null) {
+            throw new UserException(UserExceptionEnum.LOGIN_NOT_FOUND_DB);
+        }
+        if(!user.getPassword().equals(r.getPassword())) {
+            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
+        }
+        userDao.login(user, token);
+        return token.toString();
     }
 
     public void logout(String token) throws ServerException {
-        userDao.logout(token);
+        if(userDao.logout(token) != 1) {
+            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+        }
     }
 
-    public String getUserInfo(String JAVASESSIONID) throws ServerException {
-        UserInfo userInfo = userDao.getUserInfo(JAVASESSIONID);
-        if(userInfo.getAdmin() != null) {
-            Administrator ad = userInfo.getAdmin();
+    public String getUserInfo(String token) throws ServerException {
+        User user = userDao.findUserByToken(token);
+        Administrator ad = userDao.findAdministratorById(user.getId());
+        if(ad != null) {
             AdministratorInfoResponse response = new AdministratorInfoResponse(ad.getId(), ad.getFirstname(), ad.getLastname(), ad.getPatronymic(), ad.getPosition());
             return new Gson().toJson(response);
         }
-        Client c = userInfo.getClient();
-        ClientInfoResponse response = new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getTelefon(), c.getDeposit());
+        Client c = userDao.findClientById(user.getId());
+        ClientInfoResponse response = new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit());
         return new Gson().toJson(response);
     }
 
-    public List<GetClientsInfoResponse> getClientsInfo(String JAVASESSIONID) throws ServerException {
-        return userDao.getClientsInfo(JAVASESSIONID);
+    public List<ClientInfo> getClientsInfo(String token) throws ServerException {
+        checkAdministratorPrivileges(token);
+        return userDao.getClientsInfo();
     }
 
-    public void editAdministrator(AdministratorEditRequest r, String JAVASESSIONID) throws ServerException {
-        Administrator admin = userDao.findAdministratorByToken(JAVASESSIONID);
-        // хмм а какое применение у старого пароля если есть uuid?
-        // возможно проверка пароля должна быть в dao
-        Administrator updateAdmin = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), admin.getLogin(), r.getNewPassword());
-        userDao.editAdministrator(JAVASESSIONID, updateAdmin, r.getOldPassword());
+    public void editAdministrator(AdministratorEditRequest r, String token) throws ServerException {
+        User user = userDao.findUserByToken(token);
+        if(user == null) {
+            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+        }
+        Administrator ad = userDao.findAdministratorById(user.getId());
+        if(ad == null) {
+            throw new UserException(UserExceptionEnum.EDIT_NOT_YOUR_TYPE_USER);
+        }
+        if(!ad.getPassword().equals(r.getOldPassword())) {
+            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
+        }
+        Administrator newAdmin = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), null, r.getNewPassword());
+        newAdmin.setId(user.getId());
+        userDao.editAdministrator(newAdmin);
     }
 
-    public void editClient(ClientEditRequest r, String JAVASESSIONID) throws ServerException {
+    public void editClient(ClientEditRequest r, String token) throws ServerException {
+        Client client = getClientByToken(token);
+        if(!client.getPassword().equals(r.getOldPassword())) {
+            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
+        }
         Client updateClient = new Client(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getEmail(), r.getAddress(), r.getPhone(), null, r.getNewPassword());
-        userDao.editClient(JAVASESSIONID, updateClient, r.getOldPassword());
+        updateClient.setId(client.getId());
+        userDao.editClient(updateClient);
+    }
+
+    public void addMoneyDeposit(DepositMoneyRequest dto, String token) throws UserException {
+        Client c = getClientByToken(token);
+        userDao.addMoneyDeposit(c.getId(), dto.getDeposit());
+    }
+
+    public String getMoneyDeposit(String token) throws ServerException {
+        Client c = getClientByToken(token);
+        return getUserInfo(token);
     }
 }

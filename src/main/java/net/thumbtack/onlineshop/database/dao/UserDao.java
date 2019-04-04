@@ -1,30 +1,38 @@
 package net.thumbtack.onlineshop.database.dao;
 
-import net.thumbtack.onlineshop.dto.UserInfo;
-import net.thumbtack.onlineshop.dto.response.user.GetClientsInfoResponse;
+import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Client;
+import net.thumbtack.onlineshop.model.entity.User;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.model.exeptions.UserException;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface UserDao {
     void registerAdministrator(Administrator admin) throws ServerException;
-    void registerClient(Client client) throws ServerException;
-    String login(String login, String password) throws ServerException;
-    UserInfo getUserInfo(String javasessionid) throws UserException;
-    List<Client> findAllClients();
-    void clearData();
-    void logout(String uuid) throws UserException;
-    List<GetClientsInfoResponse> getClientsInfo(String javasessionid) throws UserException;
+    void editAdministrator(Administrator administrator) throws UserException;
 
     Administrator findAdministratorByLogin(String login);
-    Administrator findAdministratorByToken(String token);
+    Administrator findAdministratorById(int id);
+
+    void registerClient(Client client) throws ServerException;
+    void editClient(Client client) throws UserException;
+
+    List<ClientInfo> getClientsInfo() throws UserException;
+
     Client findClientByLogin(String login);
-    Client findClientByToken(String token);
+    Client findClientById(int id);
+    List<Client> findAllClients();
 
-    void editAdministrator(String JAVASESSIONID, Administrator administrator, String oldPassword) throws UserException;
+    void login(User user, UUID token) throws ServerException;
+    int logout(String uuid) throws UserException;
 
-    void editClient(String JAVASESSIONID, Client client, String oldPassword) throws UserException;
+    User findUserByLogin(String login);
+    User findUserByToken(String token);
+
+    void clearData();
+
+    void addMoneyDeposit(int id, String deposit);
 }

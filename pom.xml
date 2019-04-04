@@ -8,7 +8,7 @@
     <artifactId>onlineshop</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>onlineshop</name>
-    <description>Onlineshop project for Tamteck uses Spring Boot</description>
+    <message>Onlineshop project for Tamteck uses Spring Boot</message>
 
     <parent>
         <groupId>org.springframework.boot</groupId>

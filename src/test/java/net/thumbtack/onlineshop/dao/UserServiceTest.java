@@ -1,11 +1,8 @@
 package net.thumbtack.onlineshop.dao;
 
-import com.google.gson.Gson;
 import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.database.daoimpl.DaoImplUser;
-import net.thumbtack.onlineshop.dto.request.user.ClientRegisterRequest;
-import net.thumbtack.onlineshop.model.entity.Administrator;
+import net.thumbtack.onlineshop.database.daoimpl.UserDaoImpl;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.service.UserService;
 import org.junit.Before;
@@ -14,7 +11,7 @@ import org.junit.Test;
 //@RunWith(SpringRunner.class)
 //@SpringBootTest
 public class UserServiceTest {
-    private UserDao userDao= new DaoImplUser();
+    private UserDao userDao= new UserDaoImpl();
     private CommonDao commonDao;
     private UserService userService;
 

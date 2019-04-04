@@ -17,6 +17,9 @@ public class AdministratorEditRequest {
         this.newPassword = newPassword;
     }
 
+    public AdministratorEditRequest() {
+    }
+
     public String getFirstName() {
         return firstName;
     }

@@ -13,7 +13,17 @@ public class UserException extends ServerException {
     }
 
     @Override
+    public String getErrorCode() {
+        return exEnum.getErrorCode();
+    }
+
+    @Override
+    public String getField() {
+        return exEnum.getField();
+    }
+
+    @Override
     public String getMessage() {
-        return exEnum.getDescription();
+        return exEnum.getMessage();
     }
 }

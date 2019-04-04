@@ -1,11 +1,6 @@
 package net.thumbtack.onlineshop;
 
 
-//Администраторы магазина должны иметь возможность добавлять и
-//удалять категории и товары.
-//Клиенты должны иметь возможность формировать корзину клиента и
-//покупать товары.
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

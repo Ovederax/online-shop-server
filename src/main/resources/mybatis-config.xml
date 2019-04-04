@@ -26,6 +26,8 @@
 
     <mappers>
         <mapper class="net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper"/>
+        <mapper class="net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper"/>
+        <mapper class="net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper"/>
         <mapper class="net.thumbtack.onlineshop.database.mybatis.mappers.CommonMapper"/>
     </mappers>
 

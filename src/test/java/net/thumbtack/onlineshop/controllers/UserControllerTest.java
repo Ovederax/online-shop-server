@@ -7,29 +7,23 @@ import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.request.user.*;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
-import net.thumbtack.onlineshop.dto.response.user.GetClientsInfoResponse;
-import net.thumbtack.onlineshop.model.entity.Administrator;
-import net.thumbtack.onlineshop.model.entity.Client;
+import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.ResultHandler;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
 
-import java.io.IOException;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -42,11 +36,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest (webEnvironment =  SpringBootTest.WebEnvironment. DEFINED_PORT)
 public class UserControllerTest {
     @Autowired private UserDao userDao;
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+    @Autowired private WebApplicationContext webApplicationContext;
     private MockMvc mvc;
     @Autowired private ObjectMapper mapper;
-    private Gson gson = new Gson();
 
     @Before
     public void before() {
@@ -59,7 +51,7 @@ public class UserControllerTest {
         AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
         AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
 
-        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("admName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -78,7 +70,7 @@ public class UserControllerTest {
         ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
         ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
 
-        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("cName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -98,7 +90,7 @@ public class UserControllerTest {
         ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
         ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
 
-        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("cName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -115,7 +107,7 @@ public class UserControllerTest {
         assertEquals("{}", res.andReturn().getResponse().getContentAsString());
 
         UserLoginRequest loginRequest = new UserLoginRequest("login", "pass");
-        res = mvc.perform(post("/api/sessions").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(loginRequest)));
+        res = mvc.perform(post("/api/sessions").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(loginRequest)));
         res.andExpect(status().isOk());
         content = res.andReturn().getResponse().getContentAsString();
 
@@ -131,7 +123,7 @@ public class UserControllerTest {
         AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
         AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0, "admName", "admLast", null, "pos");
 
-        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("admName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -147,14 +139,14 @@ public class UserControllerTest {
         // check
         res = mvc.perform(MockMvcRequestBuilders.get("/api/clients").cookie(cookie));
         content = res.andReturn().getResponse().getContentAsString();
-        List<GetClientsInfoResponse> list = mapper.readValue(content, new TypeReference<List<GetClientsInfoResponse>>() {});
+        List<ClientInfo> list = mapper.readValue(content, new TypeReference<List<ClientInfo>>() {});
         assertEquals(0, list.size());
 
         //CLIENT REGISTER
         ClientRegisterRequest clientRegisterRequest = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
         ClientInfoResponse clientInfoResponse = new ClientInfoResponse(0, "cName", "cLast", null, "email", "address", "phone", 0);
 
-        res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(clientRegisterRequest)));
+        res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(clientRegisterRequest)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("cName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -168,7 +160,7 @@ public class UserControllerTest {
 
         res = mvc.perform(MockMvcRequestBuilders.get("/api/clients").cookie(cookie));
         content = res.andReturn().getResponse().getContentAsString();
-        list = mapper.readValue(content, new TypeReference<List<GetClientsInfoResponse>>() {});
+        list = mapper.readValue(content, new TypeReference<List<ClientInfo>>() {});
         assertEquals(1, list.size());
     }
 
@@ -177,7 +169,7 @@ public class UserControllerTest {
         AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
         AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
 
-        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("admName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -192,7 +184,7 @@ public class UserControllerTest {
 
         AdministratorEditRequest admEditReq = new AdministratorEditRequest("adm", "adm", "patron", "pos2", "1234", "1");
         respExpected = new AdministratorInfoResponse(0,"adm", "adm", "patron", "pos2");
-        res = mvc.perform(put("/api/admins").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(admEditReq)));
+        res = mvc.perform(put("/api/admins").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
         actual = mapper.readValue(mvcRes.getResponse().getContentAsString(), AdministratorInfoResponse.class);
         respExpected.setId(actual.getId());
@@ -205,7 +197,7 @@ public class UserControllerTest {
         ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
         ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
 
-        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(req)));
+        ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
                 .andExpect(jsonPath("firstName").value("cName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
@@ -220,7 +212,7 @@ public class UserControllerTest {
 
         ClientEditRequest admEditReq = new ClientEditRequest("1", "2", "3", "email2", "address2", "phone2", "pass", "newpass");
         respExpected = new ClientInfoResponse(0,"1", "2", "3", "email2", "address2", "phone2", 0);
-        res = mvc.perform(put("/api/clients").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(gson.toJson(admEditReq)));
+        res = mvc.perform(put("/api/clients").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
         actual = mapper.readValue(mvcRes.getResponse().getContentAsString(), ClientInfoResponse.class);
         respExpected.setId(actual.getId());

@@ -24,6 +24,9 @@ public class ClientInfoResponse {
         this.deposit = deposit;
     }
 
+    public ClientInfoResponse() {
+    }
+
     public int getId() {
         return id;
     }

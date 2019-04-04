@@ -18,66 +18,21 @@ import java.util.Objects;
 //этого товара уже нет либо в нужном количестве, либо вообще.
 
 
-public class Client {
-    private int id;
-    private String firstname;
-    private String lastname;
-    private String patronymic;
+public class Client extends User{
     private String email;
     private String address;
-    // REVU phone
-    private String telefon;
+    private String phone;
     private int deposit;
-    private String login;
-    private String password;
 
-    public Client(String firstname, String lastname, String patronymic, String email, String address, String telefon, String login, String password) {
-        this.id = 0;
+    public Client(String firstname, String lastname, String patronymic, String email, String address, String phone, String login, String password) {
+        super(0, firstname, lastname, patronymic, login, password);
         this.deposit = 0;
-        this.firstname = firstname;
-        this.lastname = lastname;
-        this.patronymic = patronymic;
         this.email = email;
         this.address = address;
-        this.telefon = telefon;
-        this.login = login;
-        this.password = password;
+        this.phone = phone;
     }
 
     public Client() {
-    }
-
-    public int getDeposit() {
-        return deposit;
-    }
-    public void setLogin(String login) {
-        this.login = login;
-    }
-    public void setDeposit(int deposit) {
-        this.deposit = deposit;
-    }
-    public String getFirstname() {
-        return firstname;
-    }
-
-    public void setFirstname(String firstname) {
-        this.firstname = firstname;
-    }
-
-    public String getLastname() {
-        return lastname;
-    }
-
-    public void setLastname(String lastname) {
-        this.lastname = lastname;
-    }
-
-    public String getPatronymic() {
-        return patronymic;
-    }
-
-    public void setPatronymic(String patronymic) {
-        this.patronymic = patronymic;
     }
 
     public String getEmail() {
@@ -96,51 +51,37 @@ public class Client {
         this.address = address;
     }
 
-    public String getTelefon() {
-        return telefon;
+    public String getPhone() {
+        return phone;
     }
 
-    public void setTelefon(String telefon) {
-        this.telefon = telefon;
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
-    public String getLogin() {
-        return login;
+    public int getDeposit() {
+        return deposit;
     }
 
-    public String getPassword() {
-        return password;
+    public void setDeposit(int deposit) {
+        this.deposit = deposit;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getEmail(), getAddress(), getPhone(), getDeposit());
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Client)) return false;
+        if (!super.equals(o)) return false;
         Client client = (Client) o;
-        return Objects.equals(getFirstname(), client.getFirstname()) &&
-                Objects.equals(getLastname(), client.getLastname()) &&
-                Objects.equals(getPatronymic(), client.getPatronymic()) &&
+        return getDeposit() == client.getDeposit() &&
                 Objects.equals(getEmail(), client.getEmail()) &&
                 Objects.equals(getAddress(), client.getAddress()) &&
-                Objects.equals(getTelefon(), client.getTelefon()) &&
-                Objects.equals(getLogin(), client.getLogin()) &&
-                Objects.equals(getPassword(), client.getPassword());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(getFirstname(), getLastname(), getPatronymic(), getEmail(), getAddress(), getTelefon(), getLogin(), getPassword());
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+                Objects.equals(getPhone(), client.getPhone());
     }
 }

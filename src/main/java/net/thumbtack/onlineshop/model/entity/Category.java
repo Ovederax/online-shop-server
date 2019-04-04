@@ -1,23 +1,27 @@
 package net.thumbtack.onlineshop.model.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Category {
     private int id;
     private String name;
     private Category parent;
-    // REVU what about private List<Category> subCategories ?
+    private List<Category> subCategories;
+    private List<Product> products;
 
-    private List<Goods> goods;
-
-    public Category(String name, Category parent, List<Goods> goods) {
+    public Category(String name, Category parent, List<Category> subCategories, List<Product> products) {
         this.name = name;
         this.parent = parent;
-        this.goods = goods;
+        this.subCategories = subCategories;
+        this.products = products;
     }
 
-    public Category() {
+    public Category(String name, Category parent) {
+        this(name, parent, null, null);
     }
+
+    public Category() { }
 
     public int getId() {
         return id;
@@ -43,11 +47,19 @@ public class Category {
         this.parent = parent;
     }
 
-    public List<Goods> getGoods() {
-        return goods;
+    public List<Product> getProducts() {
+        return products;
     }
 
-    public void setGoods(List<Goods> goods) {
-        this.goods = goods;
+    public void setProducts(List<Product> goods) {
+        this.products = goods;
+    }
+
+    public List<Category> getSubCategories() {
+        return subCategories;
+    }
+
+    public void setSubCategories(List<Category> subCategories) {
+        this.subCategories = subCategories;
     }
 }

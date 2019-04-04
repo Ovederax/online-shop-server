@@ -1,7 +1,6 @@
 package net.thumbtack.onlineshop.dto.request.user;
 
 import net.thumbtack.onlineshop.dto.response.ErrorContent;
-import net.thumbtack.onlineshop.model.exeptions.UserException;
 import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
 
 import java.util.ArrayList;
@@ -22,6 +21,9 @@ public class AdministratorRegisterRequest {
         this.position = position;
         this.login = login;
         this.password = password;
+    }
+
+    public AdministratorRegisterRequest() {
     }
 
     public String getFirstName() {
@@ -81,33 +83,32 @@ public class AdministratorRegisterRequest {
      * русские буквы , пробелы и знак “минус” (используемый как тире).
      * */
     public List<ErrorContent> validate() {
-    	// REVU use interface, i.e. List<ErrorContent> list = new ArrayList<>();
-        ArrayList<ErrorContent> list = new ArrayList<>();
+        List<ErrorContent> list = new ArrayList<>();
         // нужно подумать как обобщить случаи, чтобы писать менше кода ...
         if(firstName == null || firstName.equals("")) {
             list.add(new ErrorContent(UserExceptionEnum.BAD_FIRST_NAME.toString(),
                     "firstName",
-                    UserExceptionEnum.BAD_FIRST_NAME.getDescription()));
+                    UserExceptionEnum.BAD_FIRST_NAME.getMessage()));
         }
         if(lastName == null || lastName.equals("")) {
             list.add(new ErrorContent(UserExceptionEnum.BAD_LAST_NAME.toString(),
                     "lastName",
-                    UserExceptionEnum.BAD_LAST_NAME.getDescription()));
+                    UserExceptionEnum.BAD_LAST_NAME.getMessage()));
         }
         if(position == null || position.equals("")) {
             list.add(new ErrorContent(UserExceptionEnum.BAD_POSITION.toString(),
                     "position",
-                    UserExceptionEnum.BAD_POSITION.getDescription()));
+                    UserExceptionEnum.BAD_POSITION.getMessage()));
         }
         if(login == null || login.equals("")) {
             list.add(new ErrorContent(UserExceptionEnum.BAD_LOGIN.toString(),
                     "login",
-                    UserExceptionEnum.BAD_LOGIN.getDescription()));
+                    UserExceptionEnum.BAD_LOGIN.getMessage()));
         }
         if(password == null || password.equals("")) {
             list.add(new ErrorContent(UserExceptionEnum.BAD_PASSWORD.toString(),
                     "password",
-                    UserExceptionEnum.BAD_PASSWORD.getDescription()));
+                    UserExceptionEnum.BAD_PASSWORD.getMessage()));
         }
 
         if (patronymic != null) {

@@ -21,6 +21,9 @@ public class ClientEditRequest {
         this.newPassword = newPassword;
     }
 
+    public ClientEditRequest() {
+    }
+
     public String getFirstName() {
         return firstName;
     }

@@ -16,6 +16,10 @@ public class AdministratorInfoResponse {
         this.patronymic = patronymic;
         this.position = position;
     }
+
+    public AdministratorInfoResponse() {
+    }
+
     public int getId() {
         return id;
     }

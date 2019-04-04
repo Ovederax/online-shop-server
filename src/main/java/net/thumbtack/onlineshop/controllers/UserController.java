@@ -17,9 +17,8 @@ import javax.validation.Valid;
 
 @RestController
 public class UserController {
-    private UserService userService;
-    private Gson gson = new Gson();
     @Autowired private ObjectMapper mapper;
+    private UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
@@ -28,123 +27,66 @@ public class UserController {
 
     @PostMapping(path="/api/admins", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public String registerAdministrator(@Valid @RequestBody AdministratorRegisterRequest dto, HttpServletResponse response) {
-        try {
-            userService.registerAdministrator(dto);
-            String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
-            final Cookie cookie = new Cookie("JAVASESSIONID", token);
-            response.addCookie(cookie);
-            response.setStatus(HttpServletResponse.SC_OK);
-            return userService.getUserInfo(token);
-            // REVU I don't think it is a good idea to catch your mistakes it in every method
-            // If you want to catch them, do it once in GlobalExceptionHandler
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String registerAdministrator(@Valid @RequestBody AdministratorRegisterRequest dto, HttpServletResponse response) throws ServerException {
+        userService.registerAdministrator(dto);
+        String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
+        final Cookie cookie = new Cookie("JAVASESSIONID", token);
+        response.addCookie(cookie);
+        response.setStatus(HttpServletResponse.SC_OK);
+        return userService.getUserInfo(token);
     }
 
     @PostMapping(path="/api/clients", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public String registerClient(@Valid @RequestBody ClientRegisterRequest dto, HttpServletResponse response) {
-        try {
-            userService.registerClient(dto);
-            String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
-            final Cookie cookie = new Cookie("JAVASESSIONID", token);
-            response.addCookie(cookie);
-            response.setStatus(HttpServletResponse.SC_OK);
-            return userService.getUserInfo(token);
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String registerClient(@Valid @RequestBody ClientRegisterRequest dto, HttpServletResponse response) throws ServerException {
+        userService.registerClient(dto);
+        String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
+        final Cookie cookie = new Cookie("JAVASESSIONID", token);
+        response.addCookie(cookie);
+        response.setStatus(HttpServletResponse.SC_OK);
+        return userService.getUserInfo(token);
     }
 
     @PostMapping(path="/api/sessions", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public String login(@Valid @RequestBody UserLoginRequest dto, HttpServletResponse response) {
-        try {
-            String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
-            final Cookie cookie = new Cookie("JAVASESSIONID", token);
-            response.addCookie(cookie);
-            response.setStatus(HttpServletResponse.SC_OK);
-            return userService.getUserInfo(token);
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String login(@Valid @RequestBody UserLoginRequest dto, HttpServletResponse response) throws ServerException {
+        String token = userService.login(new UserLoginRequest(dto.getLogin(), dto.getPassword()));
+        final Cookie cookie = new Cookie("JAVASESSIONID", token);
+        response.addCookie(cookie);
+        response.setStatus(HttpServletResponse.SC_OK);
+        return userService.getUserInfo(token);
     }
 
     @DeleteMapping(path="/api/sessions", produces = MediaType.APPLICATION_JSON_VALUE )
-    public String logout(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
-        try {
-            userService.logout(cookie.getValue());
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
+    public String logout(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) throws ServerException {
+        userService.logout(cookie.getValue());
         return "{}";
     }
 
     @GetMapping(path="/api/accounts", produces = MediaType.APPLICATION_JSON_VALUE )
-    public String userInfo(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
-        try {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return userService.getUserInfo(cookie.getValue());
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String userInfo(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) throws ServerException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        return userService.getUserInfo(cookie.getValue());
     }
 
     @GetMapping(path="/api/clients", produces = MediaType.APPLICATION_JSON_VALUE )
-    public String clientsInfo(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
-        try {
-            response.setStatus(HttpServletResponse.SC_OK);
-            return mapper.writeValueAsString(userService.getClientsInfo(cookie.getValue()));
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException | JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String clientsInfo(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) throws ServerException, JsonProcessingException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        return mapper.writeValueAsString(userService.getClientsInfo(cookie.getValue()));
     }
 
     @PutMapping(path="/api/admins", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public String updateAdministratorProfile(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody AdministratorEditRequest dto, HttpServletResponse response) {
-        try {
-            response.setStatus(HttpServletResponse.SC_OK);
-            userService.editAdministrator(dto, cookie.getValue());
-            return userService.getUserInfo(cookie.getValue());
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String updateAdministratorProfile(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody AdministratorEditRequest dto, HttpServletResponse response) throws ServerException {
+        response.setStatus(HttpServletResponse.SC_OK);
+    userService.editAdministrator(dto, cookie.getValue());
+        return userService.getUserInfo(cookie.getValue());
     }
 
     @PutMapping(path="/api/clients", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public String updateClientProfile(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody ClientEditRequest dto, HttpServletResponse response) {
-        try {
-            response.setStatus(HttpServletResponse.SC_OK);
-            userService.editClient(dto, cookie.getValue());
-            return userService.getUserInfo(cookie.getValue());
-        } catch (ServerErrorException e) {
-            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        } catch (ServerException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String updateClientProfile(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody ClientEditRequest dto, HttpServletResponse response) throws ServerException {
+    response.setStatus(HttpServletResponse.SC_OK);
+    userService.editClient(dto, cookie.getValue());
+    return userService.getUserInfo(cookie.getValue());
     }
 }

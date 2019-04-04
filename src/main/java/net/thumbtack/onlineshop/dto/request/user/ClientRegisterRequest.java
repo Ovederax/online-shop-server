@@ -27,6 +27,9 @@ public class ClientRegisterRequest {
         this.password = password;
     }
 
+    public ClientRegisterRequest() {
+    }
+
     public String getFirstName() {
         return firstName;
     }
