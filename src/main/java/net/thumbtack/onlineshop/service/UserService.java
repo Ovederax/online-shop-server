@@ -92,6 +92,7 @@ public class UserService {
             throw new UserException(UserExceptionEnum.BAD_PASSWORD);
         }
         userDao.login(user, token);
+        // REVU см. ниже. Кроме того, заведите класс DTO респонса, а не toString
         return token.toString();
     }
 
@@ -110,6 +111,12 @@ public class UserService {
         }
         Client c = userDao.findClientById(user.getId());
         ClientInfoResponse response = new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit());
+        // REVU здесь и везде
+        // во-первых, штатной библиотекой для Spring является Jackson, так что Gson уберите ВЕЗДЕ из проекта
+        // во-вторых, не надо самому преобразовывать в String. Пусть этот метод просто вернет AdministratorInfoResponse
+        // или ClientInfoResponse (а как сделать, чтобы он мог вернуть и то, и другое, подумайте). В итоге этот тип
+        // будет возвращен в контроллер, и пусть метод контроллера тоже его и возвращает (или ResponseEnity<от него>
+        // Преобразование в json будет сделано автоматически
         return new Gson().toJson(response);
     }
 
@@ -130,6 +137,7 @@ public class UserService {
         if(!ad.getPassword().equals(r.getOldPassword())) {
             throw new UserException(UserExceptionEnum.BAD_PASSWORD);
         }
+        // REVU Зачем вам new Administrator понадобился ? Чем прежний не хорош ?
         Administrator newAdmin = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), null, r.getNewPassword());
         newAdmin.setId(user.getId());
         userDao.editAdministrator(newAdmin);

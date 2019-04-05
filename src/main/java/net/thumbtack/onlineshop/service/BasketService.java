@@ -30,6 +30,8 @@ public class BasketService {
         if(dto.getCount() == 0) {
             dto.setCount(1);
         }
+        // REVU никакого ProductDTO не нужно. По ProductAddInBasketsRequest получите из БД Product и его передайте в addProductInBasket
+        
         basketDao.addProductInBasket(client, new ProductDTO(dto.getId(), dto.getName(),  dto.getPrice(), dto.getCount(), null));
         return getProductsInBasket(client);
     }

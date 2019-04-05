@@ -17,6 +17,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     @Override
     public int addCategory(String name, String parentId) {
         LOGGER.debug("CategoryDao addCategory");
+        // REVU никакого CategoryDTO не нужно. Передавайте сюда Category, у него все есть
         CategoryDTO dto = new CategoryDTO(0, name, parentId);
         try(SqlSession sqlSession = getSession()) {
             try {
