@@ -1,17 +1,13 @@
 package net.thumbtack.onlineshop.service;
 
-import com.google.gson.Gson;
 import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.request.user.*;
-import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
-import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
-import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
+import net.thumbtack.onlineshop.dto.response.user.*;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.User;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
-import net.thumbtack.onlineshop.model.exeptions.UserException;
-import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,82 +38,68 @@ public class UserService {
 
     Пароль является case-sensitive.*/
 
-    public void checkAdministratorPrivileges(String token) throws UserException {
+    public void checkAdministratorPrivileges(String token) throws ServerException {
         User user = userDao.findUserByToken(token);
-        if(user == null) {
-            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
-        }
         Administrator ad = userDao.findAdministratorById(user.getId());
         if(ad == null) {
-            throw new UserException(UserExceptionEnum.YOU_NO_HAVE_THIS_PRIVILEGES);
+            throw new ServerException(ErrorCode.YOU_NO_HAVE_THIS_PRIVILEGES);
         }
     }
-    public Client getClientByToken(String token) throws UserException {
+    public Client getClientByToken(String token) throws ServerException {
         User user = userDao.findUserByToken(token);
-        if(user == null) {
-            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
-        }
         Client c = userDao.findClientById(user.getId());
         if(c == null) {
-            throw new UserException(UserExceptionEnum.USER_IS_NOT_CLIENT);
+            throw new ServerException(ErrorCode.USER_IS_NOT_CLIENT);
         }
         return c;
     }
-    public void checkUserExistByToken(String token) throws UserException {
-        User user = userDao.findUserByToken(token);
-        if(user == null) {
-            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
-        }
-    }
 
     public void registerAdministrator(AdministratorRegisterRequest r) throws ServerException {
-        userDao.registerAdministrator(new Administrator(r.getFirstName(), r.getLastName(),
-                r.getPatronymic(), r.getPosition(), r.getLogin(), r.getPassword()));
+        Administrator ad = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), r.getLogin(), r.getPassword());
+        userDao.registerAdministrator(ad);
+        // как первоначальная идея возврата, тогда не нужно делать на login getUserInfoByUserId()
+        // но для POST UserController::login() - нужно все равно возвращать данные, так что ...
+        //return new AdministratorInfoResponse(ad.getId(), ad.getFirstname(), ad.getLastname(), ad.getPatronymic(), ad.getPosition());
     }
 
     public void registerClient(ClientRegisterRequest r) throws ServerException {
-        userDao.registerClient(new Client(r.getFirstName(), r.getLastName(),
-                r.getPatronymic(), r.getEmail(), r.getAddress(),
-                r.getPhone(), r.getLogin(), r.getPassword()));
+        Client c = new Client(r.getFirstName(), r.getLastName(), r.getPatronymic(),
+                r.getEmail(), r.getAddress(), r.getPhone(), r.getLogin(), r.getPassword());
+        userDao.registerClient(c);
+        //return new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit().getMoney());
     }
 
     /** @return token in uuid format */
-    public String login(UserLoginRequest r) throws ServerException {
+    public UserLoginResponse login(UserLoginRequest r) throws ServerException {
         UUID token = UUID.randomUUID();
         User user = userDao.findUserByLogin(r.getLogin());
         if(user == null) {
-            throw new UserException(UserExceptionEnum.LOGIN_NOT_FOUND_DB);
+            throw new ServerException(ErrorCode.LOGIN_NOT_FOUND_DB);
         }
         if(!user.getPassword().equals(r.getPassword())) {
-            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
+            throw new ServerException(ErrorCode.BAD_PASSWORD);
         }
         userDao.login(user, token);
-        // REVU см. ниже. Кроме того, заведите класс DTO респонса, а не toString
-        return token.toString();
+        return new UserLoginResponse(token.toString(), getUserInfoByUserId(user.getId()));
     }
 
     public void logout(String token) throws ServerException {
         if(userDao.logout(token) != 1) {
-            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+            throw new ServerException(ErrorCode.UUID_NOT_FOUND);
         }
     }
 
-    public String getUserInfo(String token) throws ServerException {
-        User user = userDao.findUserByToken(token);
-        Administrator ad = userDao.findAdministratorById(user.getId());
+    private UserInfoResponse getUserInfoByUserId(int userId) {
+        Administrator ad = userDao.findAdministratorById(userId);
         if(ad != null) {
-            AdministratorInfoResponse response = new AdministratorInfoResponse(ad.getId(), ad.getFirstname(), ad.getLastname(), ad.getPatronymic(), ad.getPosition());
-            return new Gson().toJson(response);
+            return new AdministratorInfoResponse(ad.getId(), ad.getFirstname(), ad.getLastname(), ad.getPatronymic(), ad.getPosition());
         }
-        Client c = userDao.findClientById(user.getId());
-        ClientInfoResponse response = new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit());
-        // REVU здесь и везде
-        // во-первых, штатной библиотекой для Spring является Jackson, так что Gson уберите ВЕЗДЕ из проекта
-        // во-вторых, не надо самому преобразовывать в String. Пусть этот метод просто вернет AdministratorInfoResponse
-        // или ClientInfoResponse (а как сделать, чтобы он мог вернуть и то, и другое, подумайте). В итоге этот тип
-        // будет возвращен в контроллер, и пусть метод контроллера тоже его и возвращает (или ResponseEnity<от него>
-        // Преобразование в json будет сделано автоматически
-        return new Gson().toJson(response);
+        Client c = userDao.findClientById(userId);
+        return new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit().getMoney());
+    }
+    public UserInfoResponse getUserInfo(String token) throws ServerException {
+        User user = userDao.findUserByToken(token);
+        return getUserInfoByUserId(user.getId());
     }
 
     public List<ClientInfo> getClientsInfo(String token) throws ServerException {
@@ -125,40 +107,38 @@ public class UserService {
         return userDao.getClientsInfo();
     }
 
-    public void editAdministrator(AdministratorEditRequest r, String token) throws ServerException {
+    public AdministratorInfoResponse editAdministrator(AdministratorEditRequest r, String token) throws ServerException {
         User user = userDao.findUserByToken(token);
-        if(user == null) {
-            throw new UserException(UserExceptionEnum.UUID_NOT_FOUND);
+        Administrator admin = userDao.findAdministratorById(user.getId());
+        if(admin == null) {
+            throw new ServerException(ErrorCode.EDIT_NOT_YOUR_TYPE_USER);
         }
-        Administrator ad = userDao.findAdministratorById(user.getId());
-        if(ad == null) {
-            throw new UserException(UserExceptionEnum.EDIT_NOT_YOUR_TYPE_USER);
+        if(!admin.getPassword().equals(r.getOldPassword())) {
+            throw new ServerException(ErrorCode.BAD_PASSWORD);
         }
-        if(!ad.getPassword().equals(r.getOldPassword())) {
-            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
-        }
-        // REVU Зачем вам new Administrator понадобился ? Чем прежний не хорош ?
-        Administrator newAdmin = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), null, r.getNewPassword());
-        newAdmin.setId(user.getId());
-        userDao.editAdministrator(newAdmin);
+        // сомневаюсь, что обновление сущности с вызовом множества методов
+        // будет быстрее создание нового объекта через конструктор с нужными полями
+        admin.updateEntity(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), r.getNewPassword());
+        userDao.editAdministrator(admin);
+        return new AdministratorInfoResponse(admin.getId(), admin.getFirstname(), admin.getLastname(), admin.getPatronymic(), admin.getPosition());
     }
 
-    public void editClient(ClientEditRequest r, String token) throws ServerException {
-        Client client = getClientByToken(token);
-        if(!client.getPassword().equals(r.getOldPassword())) {
-            throw new UserException(UserExceptionEnum.BAD_PASSWORD);
+    public ClientInfoResponse editClient(ClientEditRequest r, String token) throws ServerException {
+        Client c = getClientByToken(token);
+        if(!c.getPassword().equals(r.getOldPassword())) {
+            throw new ServerException(ErrorCode.BAD_PASSWORD);
         }
-        Client updateClient = new Client(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getEmail(), r.getAddress(), r.getPhone(), null, r.getNewPassword());
-        updateClient.setId(client.getId());
-        userDao.editClient(updateClient);
+        c.updateEntity(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getEmail(), r.getAddress(), r.getPhone(), r.getNewPassword());
+        userDao.editClient(c);
+        return new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit().getMoney());
     }
 
-    public void addMoneyDeposit(DepositMoneyRequest dto, String token) throws UserException {
+    public void addMoneyDeposit(DepositMoneyRequest dto, String token) throws ServerException {
         Client c = getClientByToken(token);
         userDao.addMoneyDeposit(c.getId(), dto.getDeposit());
     }
 
-    public String getMoneyDeposit(String token) throws ServerException {
+    public UserInfoResponse getMoneyDeposit(String token) throws ServerException {
         Client c = getClientByToken(token);
         return getUserInfo(token);
     }

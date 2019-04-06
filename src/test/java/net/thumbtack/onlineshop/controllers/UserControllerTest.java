@@ -2,12 +2,12 @@ package net.thumbtack.onlineshop.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.request.user.*;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
-import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
+import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,27 +23,24 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
-
 import java.util.List;
 
-import static org.junit.Assert.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest (webEnvironment =  SpringBootTest.WebEnvironment. DEFINED_PORT)
 public class UserControllerTest {
-    @Autowired private UserDao userDao;
     @Autowired private WebApplicationContext webApplicationContext;
-    private MockMvc mvc;
     @Autowired private ObjectMapper mapper;
+    private MockMvc mvc;
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        userDao.clearData();
+        mvc.perform(get("/api/debug/clear")).andExpect(status().isOk());
     }
 
     @Test

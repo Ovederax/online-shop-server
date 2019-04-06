@@ -1,13 +1,9 @@
 package net.thumbtack.onlineshop.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
-import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.database.mybatis.transfer.ProductDTO;
 import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
-import net.thumbtack.onlineshop.model.entity.Product;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,21 +14,21 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ProductControllerTest {
-    @Autowired private CommonDao commonDao;
-    @Autowired private ProductDao productDao;
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private ObjectMapper mapper;
     private MockMvc mvc;
-    private Gson gson = new Gson();
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        commonDao.clear();
+        mvc.perform(get("/api/debug/clear")).andExpect(status().isOk());
     }
 
     @Test

@@ -11,7 +11,8 @@ public class Product {
     private int isDeleted;
     private List<Category> categories;
 
-    public Product(String name, int price, int count, List<Category> categories) {
+    public Product(int id, String name, int price, int count, List<Category> categories) {
+        this.id = id;
         this.name = name;
         this.price = price;
         this.count = count;
@@ -19,8 +20,13 @@ public class Product {
         this.categories = categories;
     }
 
+    public Product(String name, int price, int count, List<Category> categories) {
+        this(0, name, price, count, categories);
+    }
+
     public Product() {
     }
+
 
     public String getName() {
         return name;
@@ -98,5 +104,15 @@ public class Product {
     @Override
     public int hashCode() {
         return Objects.hash(id, name, price, count, isDeleted, categories);
+    }
+
+    /**Update field if arguments is not null*/
+    public void updateEntity(String name, Integer price, Integer count) {
+        if(name != null)
+            this.name = name;
+        if(price != null)
+            this.price = price;
+        if(count != null)
+            this.count = count;
     }
 }

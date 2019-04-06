@@ -1,6 +1,5 @@
 package net.thumbtack.onlineshop.database.mybatis.mappers;
 
-import net.thumbtack.onlineshop.database.mybatis.transfer.CategoryDTO;
 import net.thumbtack.onlineshop.model.entity.Category;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
@@ -8,9 +7,14 @@ import org.apache.ibatis.mapping.FetchType;
 import java.util.List;
 
 public interface CategoryMapper {
-    @Insert("INSERT INTO categories(name, parentId) VALUES(#{name}, #{parentId})")
+    @Insert("<script>" +
+            "INSERT INTO categories(name, parentId) VALUES(#{name}, " +
+            "<if test='parent!=null'>#{parent.id}</if>" +
+            "<if test='parent==null'>null</if>"+            // как это сделать правильно?
+            ")"+
+            "</script>")
     @Options(useGeneratedKeys = true, keyColumn = "id")
-    void insertCategory(CategoryDTO dto);
+    void insertCategory(Category category);
 
     @Select("SELECT * FROM categories WHERE id=#{id}")
     @Results({

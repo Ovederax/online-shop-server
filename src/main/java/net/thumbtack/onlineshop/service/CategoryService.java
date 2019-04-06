@@ -1,19 +1,15 @@
 package net.thumbtack.onlineshop.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
-import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryEditRequest;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryEditResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryGetResponse;
 import net.thumbtack.onlineshop.model.entity.Category;
-import net.thumbtack.onlineshop.model.exeptions.CategoryException;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
-import net.thumbtack.onlineshop.model.exeptions.UserException;
-import net.thumbtack.onlineshop.model.exeptions.enums.CategoryExceptionEnum;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +19,6 @@ import java.util.List;
 
 @Service
 public class CategoryService {
-    private @Autowired ObjectMapper mapper;
     private CategoryDao categoryDao;
     private UserService userService;
 
@@ -33,56 +28,60 @@ public class CategoryService {
         this.userService = userService;
     }
 
-    public String addCategory(CategoryAddRequest dto, String token) throws UserException, JsonProcessingException, CategoryException {
+    public CategoryAddResponse addCategory(CategoryAddRequest dto, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
-        int id = categoryDao.addCategory(dto.getName(), dto.getParentId());
-        Category c = categoryDao.getCategory(id);
+        Category parent = null;
+        if(dto.getParentId() != null) {
+            parent = categoryDao.findCategoryById(dto.getParentId());
+        }
+        Category c = new Category(dto.getName(), parent);
+        categoryDao.addCategory(c);
         Category p = c.getParent();
         if(p!=null) {
-            return mapper.writeValueAsString(new CategoryAddResponse(c.getId(), c.getName(), p.getId(), p.getName()));
+            return new CategoryAddResponse(c.getId(), c.getName(), p.getId(), p.getName());
         }
-        return mapper.writeValueAsString(new CategoryAddResponse(c.getId(), c.getName(), 0, null));
+        return new CategoryAddResponse(c.getId(), c.getName(), 0, null);
     }
 
-    public String getCategory(int id, String token) throws UserException, JsonProcessingException, CategoryException {
+    public CategoryGetResponse getCategory(int id, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         Category c = categoryDao.getCategory(id);
         if(c == null) {
-            throw new CategoryException(CategoryExceptionEnum.CATEGORY_NO_EXISTS);
+            throw new ServerException(ErrorCode.CATEGORY_NO_EXISTS);
         }
         Category p = c.getParent();
         if(p!=null) {
-            return mapper.writeValueAsString(new CategoryGetResponse(c.getId(), c.getName(), p.getId(), p.getName()));
+            return new CategoryGetResponse(c.getId(), c.getName(), p.getId(), p.getName());
         }
-        return mapper.writeValueAsString(new CategoryGetResponse(c.getId(), c.getName(), 0, null));
+        return new CategoryGetResponse(c.getId(), c.getName(), 0, null);
     }
 
-    public String updateCategory(int id, CategoryEditRequest dto, String token) throws JsonProcessingException, ServerException {
+    public CategoryEditResponse updateCategory(int id, CategoryEditRequest dto, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         if(dto.getParentId() != null) {
             Category c = categoryDao.getCategory(id);
             if (c.getParent() != null) {
-                throw new CategoryException(CategoryExceptionEnum.BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY);
+                throw new ServerException(ErrorCode.BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY);
             }
         }
         categoryDao.updateCategory(id, dto.getName(), dto.getParentId());
         Category c = categoryDao.getCategory(id);
         if(c == null) {
-            throw new CategoryException(CategoryExceptionEnum.CATEGORY_NO_EXISTS);
+            throw new ServerException(ErrorCode.CATEGORY_NO_EXISTS);
         }
         Category p = c.getParent();
         if(p!=null) {
-            return mapper.writeValueAsString(new CategoryEditResponse(c.getId(), c.getName(), p.getId(), p.getName()));
+            return new CategoryEditResponse(c.getId(), c.getName(), p.getId(), p.getName());
         }
-        return mapper.writeValueAsString(new CategoryEditResponse(c.getId(), c.getName(), 0, null));
+        return new CategoryEditResponse(c.getId(), c.getName(), 0, null);
     }
 
-    public void deleteCategory(int id, String token) throws UserException {
+    public void deleteCategory(int id, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         categoryDao.deleteCategory(id);
     }
 
-    public String getCategories(String token) throws UserException, JsonProcessingException {
+    public List<CategoryGetResponse> getCategories(String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         List<Category> categories = categoryDao.getCategories();
         List<CategoryGetResponse> out = new ArrayList<CategoryGetResponse>();
@@ -97,7 +96,7 @@ public class CategoryService {
         }
         // ??? нужно подумать ???
         out.sort(Comparator.comparing(CategoryGetResponse::getName));
-        return mapper.writeValueAsString(out);
+        return out;
 
 
         /**Список выдается, отсортированный по именам категорий,

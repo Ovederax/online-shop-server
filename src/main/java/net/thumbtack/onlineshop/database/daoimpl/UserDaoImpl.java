@@ -1,14 +1,15 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.UserDao;
+import net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Client;
+import net.thumbtack.onlineshop.model.entity.Deposit;
 import net.thumbtack.onlineshop.model.entity.User;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
-import net.thumbtack.onlineshop.model.exeptions.UserException;
-import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +44,11 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
         LOGGER.debug("UserDAO registerClient");
         try(SqlSession sqlSession = getSession()) {
             try {
-                getUserMapper(sqlSession).insertUser(client);
-                getUserMapper(sqlSession).insertClient(client);
+                UserMapper userMapper = getUserMapper(sqlSession);
+                DepositMapper depositMapper = getDepositMapper(sqlSession);
+                userMapper.insertUser(client);
+                userMapper.insertClient(client);
+                depositMapper.insertDeposit(new Deposit(client.getId(), 0));
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't insertClient client in DB ", ex);
                 sqlSession.rollback();
@@ -55,7 +59,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public void login(User user, UUID token) throws UserException {
+    public void login(User user, UUID token) throws ServerException {
         LOGGER.debug("UserDAO loginClient");
 
         try(SqlSession sqlSession = getSession()) {
@@ -104,11 +108,22 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
 
     @Override
     public void addMoneyDeposit(int id, String deposit) {
-
+        LOGGER.debug("UserDAO addMoneyDeposit");
+        int editCount;
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                getUserMapper(sqlSession);
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't addMoneyDeposit DB ", ex);
+                sqlSession.rollback();
+                throw ex;
+            }
+            sqlSession.commit();
+        }
     }
 
     @Override
-    public int logout(String token) throws UserException {
+    public int logout(String token) throws ServerException {
         LOGGER.debug("UserDAO logout");
         int editCount;
         try(SqlSession sqlSession = getSession()) {
@@ -126,7 +141,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public List<ClientInfo> getClientsInfo() throws UserException {
+    public List<ClientInfo> getClientsInfo() throws ServerException {
         LOGGER.debug("UserDAO getClientsInfo");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -210,11 +225,15 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public User findUserByToken(String token) {
+    public User findUserByToken(String token) throws ServerException {
         LOGGER.debug("UserDAO findUserByToken");
         try(SqlSession sqlSession = getSession()) {
             try {
-                return getUserMapper(sqlSession).findUserByToken(token);
+                User user = getUserMapper(sqlSession).findUserByToken(token);
+                if(user == null) {
+                    throw new ServerException(ErrorCode.UUID_NOT_FOUND);
+                }
+                return user;
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't findUserByToken in DB ", ex);
                 throw ex;
@@ -223,7 +242,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public void editAdministrator(Administrator admin) throws UserException {
+    public void editAdministrator(Administrator admin) throws ServerException {
         LOGGER.debug("UserDAO editAdministrator");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -240,7 +259,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public void editClient(Client client) throws UserException {
+    public void editClient(Client client) throws ServerException {
         LOGGER.debug("UserDAO editClient");
         try(SqlSession sqlSession = getSession()) {
             try {

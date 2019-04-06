@@ -21,4 +21,13 @@ public class Administrator extends User{
     public void setPosition(String position) {
         this.position = position;
     }
+
+    public void updateEntity(String firstName, String lastName, String patronymic, String position, String password) {
+        setFirstname(firstName);
+        setLastname(lastName);
+        setPatronymic(patronymic);
+        setPosition(position);
+        setPassword(password);
+        this.position = position;
+    }
 }

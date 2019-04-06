@@ -2,6 +2,7 @@ package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper;
+import net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper;
 import net.thumbtack.onlineshop.model.entity.Category;
@@ -23,7 +24,9 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
                 UserMapper userMapper = getUserMapper(sqlSession);
                 CategoryMapper categoryMapper = getCategoryMapper(sqlSession);
                 ProductMapper productMapper = getProductMapper(sqlSession);
+                DepositMapper depositMapper = getDepositMapper(sqlSession);
 
+                depositMapper.clearAllDeposits();
                 userMapper.deleteAllClients();
                 userMapper.deleteAllAdministrators();
                 userMapper.deleteAllLoginRecords();

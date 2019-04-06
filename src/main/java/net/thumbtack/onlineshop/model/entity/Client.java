@@ -22,17 +22,27 @@ public class Client extends User{
     private String email;
     private String address;
     private String phone;
-    private int deposit;
+    private Deposit deposit;
 
     public Client(String firstname, String lastname, String patronymic, String email, String address, String phone, String login, String password) {
         super(0, firstname, lastname, patronymic, login, password);
-        this.deposit = 0;
+        this.deposit = null;
         this.email = email;
         this.address = address;
         this.phone = phone;
     }
 
     public Client() {
+    }
+
+    public void updateEntity(String firstname, String lastname, String patronymic, String email, String address, String phone, String password) {
+        setFirstname(firstname);
+        setLastname(lastname);
+        setPatronymic(patronymic);
+        setPassword(password);
+        this.email = email;
+        this.address = address;
+        this.phone = phone;
     }
 
     public String getEmail() {
@@ -59,29 +69,29 @@ public class Client extends User{
         this.phone = phone;
     }
 
-    public int getDeposit() {
+    public Deposit getDeposit() {
         return deposit;
     }
 
-    public void setDeposit(int deposit) {
+    public void setDeposit(Deposit deposit) {
         this.deposit = deposit;
     }
 
 
     @Override
-    public int hashCode() {
-        return Objects.hash(getEmail(), getAddress(), getPhone(), getDeposit());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        Client client = (Client) o;
+        return Objects.equals(email, client.email) &&
+                Objects.equals(address, client.address) &&
+                Objects.equals(phone, client.phone) &&
+                Objects.equals(deposit, client.deposit);
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Client)) return false;
-        if (!super.equals(o)) return false;
-        Client client = (Client) o;
-        return getDeposit() == client.getDeposit() &&
-                Objects.equals(getEmail(), client.getEmail()) &&
-                Objects.equals(getAddress(), client.getAddress()) &&
-                Objects.equals(getPhone(), client.getPhone());
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), email, address, phone, deposit);
     }
 }

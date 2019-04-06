@@ -1,6 +1,5 @@
 package net.thumbtack.onlineshop.database.mybatis.mappers;
 
-import net.thumbtack.onlineshop.database.mybatis.transfer.ProductDTO;
 import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.entity.Product;
 import org.apache.ibatis.annotations.*;
@@ -9,7 +8,8 @@ import org.apache.ibatis.mapping.FetchType;
 import java.util.List;
 
 public interface ProductMapper {
-    @Select("SELECT goods.id, goods.name, goods.price, goods.counter FROM goods JOIN goods_categories ON goodsId=#{goods.id} WHERE categoryId = #{categoryId}")
+    @Select("SELECT products.id, products.name, products.price, products.counter FROM products " +
+            "JOIN products_categories ON productId=#{products.id} WHERE categoryId = #{categoryId}")
     List<Product> findProductsByCategoryId(int categoryId);
 
     @Insert("")
@@ -18,7 +18,7 @@ public interface ProductMapper {
     @Insert("")
     void insertProductCategories(Product product, List<Integer> categories);
 
-    @Select("SELECT * FROM goods WHERE id={id}")
+    @Select("SELECT * FROM products WHERE id={id}")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "categories", column = "id", javaType = List.class,
@@ -34,15 +34,15 @@ public interface ProductMapper {
     List<Category> findCategoriesByProductId(int productId);
 
     @Update("")
-    void updateProduct(ProductDTO dto);
+    void updateProduct(Product dto);
 
     @Update("")
     void deleteProductById(int id);
 
-    @Delete("DELETE FROM goods")
+    @Delete("DELETE FROM products")
     void deleteAllProduct();
 
-    @Delete("DELETE FROM goods_categories")
+    @Delete("DELETE FROM products_categories")
     void deleteAllTableProductsCategories();
 
 }

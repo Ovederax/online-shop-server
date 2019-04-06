@@ -6,10 +6,10 @@ public class ProductBuyRequest {
     private int id;
     private String name;
     private int price;
-    private int count;
+    private Integer count; // необязательный
 
 
-    public ProductBuyRequest(int id, String name, int price, int count) {
+    public ProductBuyRequest(int id, String name, int price, Integer count) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -43,11 +43,11 @@ public class ProductBuyRequest {
         this.price = price;
     }
 
-    public int getCount() {
+    public Integer getCount() {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(Integer count) {
         this.count = count;
     }
 

@@ -2,7 +2,6 @@ package net.thumbtack.onlineshop.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryEditRequest;
@@ -13,10 +12,7 @@ import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryEditResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryGetResponse;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
-import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
-import net.thumbtack.onlineshop.model.entity.Category;
-import net.thumbtack.onlineshop.model.exeptions.CategoryException;
-import net.thumbtack.onlineshop.model.exeptions.enums.CategoryExceptionEnum;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,36 +23,32 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
-
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class CategoryControllerTest {
-    @Autowired private CommonDao commonDao;
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private ObjectMapper mapper;
     private MockMvc mvc;
 
     @Before
-    public void before() {
+    public void before() throws Exception {
         mvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        commonDao.clear();
+        mvc.perform(get("/api/debug/clear")).andExpect(status().isOk());
     }
 
     private Cookie adminRegisterAndLogin_getCookie() throws Exception {
@@ -191,7 +183,7 @@ public class CategoryControllerTest {
         mvcRes = res.andReturn();
         content = mvcRes.getResponse().getContentAsString();
 
-        CategoryExceptionEnum ex = CategoryExceptionEnum.CATEGORY_NO_EXISTS;
+        ErrorCode ex = ErrorCode.CATEGORY_NO_EXISTS;
         assertEquals(new ErrorResponse(Arrays.asList(new ErrorContent(
                 ex.getErrorCode(), ex.getField(), ex.getMessage()
         ))), mapper.readValue(content, ErrorResponse.class));

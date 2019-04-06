@@ -1,7 +1,7 @@
 package net.thumbtack.onlineshop.dto.request.user;
 
 import net.thumbtack.onlineshop.dto.response.ErrorContent;
-import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,29 +86,29 @@ public class AdministratorRegisterRequest {
         List<ErrorContent> list = new ArrayList<>();
         // нужно подумать как обобщить случаи, чтобы писать менше кода ...
         if(firstName == null || firstName.equals("")) {
-            list.add(new ErrorContent(UserExceptionEnum.BAD_FIRST_NAME.toString(),
+            list.add(new ErrorContent(ErrorCode.BAD_FIRST_NAME.toString(),
                     "firstName",
-                    UserExceptionEnum.BAD_FIRST_NAME.getMessage()));
+                    ErrorCode.BAD_FIRST_NAME.getMessage()));
         }
         if(lastName == null || lastName.equals("")) {
-            list.add(new ErrorContent(UserExceptionEnum.BAD_LAST_NAME.toString(),
+            list.add(new ErrorContent(ErrorCode.BAD_LAST_NAME.toString(),
                     "lastName",
-                    UserExceptionEnum.BAD_LAST_NAME.getMessage()));
+                    ErrorCode.BAD_LAST_NAME.getMessage()));
         }
         if(position == null || position.equals("")) {
-            list.add(new ErrorContent(UserExceptionEnum.BAD_POSITION.toString(),
+            list.add(new ErrorContent(ErrorCode.BAD_POSITION.toString(),
                     "position",
-                    UserExceptionEnum.BAD_POSITION.getMessage()));
+                    ErrorCode.BAD_POSITION.getMessage()));
         }
         if(login == null || login.equals("")) {
-            list.add(new ErrorContent(UserExceptionEnum.BAD_LOGIN.toString(),
+            list.add(new ErrorContent(ErrorCode.BAD_LOGIN.toString(),
                     "login",
-                    UserExceptionEnum.BAD_LOGIN.getMessage()));
+                    ErrorCode.BAD_LOGIN.getMessage()));
         }
         if(password == null || password.equals("")) {
-            list.add(new ErrorContent(UserExceptionEnum.BAD_PASSWORD.toString(),
+            list.add(new ErrorContent(ErrorCode.BAD_PASSWORD.toString(),
                     "password",
-                    UserExceptionEnum.BAD_PASSWORD.getMessage()));
+                    ErrorCode.BAD_PASSWORD.getMessage()));
         }
 
         if (patronymic != null) {

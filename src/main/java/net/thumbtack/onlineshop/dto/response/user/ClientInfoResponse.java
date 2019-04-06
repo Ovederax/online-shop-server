@@ -2,11 +2,7 @@ package net.thumbtack.onlineshop.dto.response.user;
 
 import java.util.Objects;
 
-public class ClientInfoResponse {
-    private int id;
-    private String firstName;
-    private String lastName;
-    private String patronymic;
+public class ClientInfoResponse extends UserInfoResponse{
     private String email;
     private String address;
     private String phone;
@@ -14,10 +10,7 @@ public class ClientInfoResponse {
 
 
     public ClientInfoResponse(int id, String firstName, String lastName, String patronymic, String email, String address, String phone, int deposit) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.patronymic = patronymic;
+        super(id, firstName, lastName, patronymic);
         this.email = email;
         this.address = address;
         this.phone = phone;
@@ -25,39 +18,9 @@ public class ClientInfoResponse {
     }
 
     public ClientInfoResponse() {
+        super();
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getPatronymic() {
-        return patronymic;
-    }
-
-    public void setPatronymic(String patronymic) {
-        this.patronymic = patronymic;
-    }
 
     public String getEmail() {
         return email;
@@ -94,21 +57,17 @@ public class ClientInfoResponse {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ClientInfoResponse)) return false;
-        ClientInfoResponse response = (ClientInfoResponse) o;
-        return getId() == response.getId() &&
-                getDeposit() == response.getDeposit() &&
-                Objects.equals(getFirstName(), response.getFirstName()) &&
-                Objects.equals(getLastName(), response.getLastName()) &&
-                Objects.equals(getPatronymic(), response.getPatronymic()) &&
-                Objects.equals(getEmail(), response.getEmail()) &&
-                Objects.equals(getAddress(), response.getAddress()) &&
-                Objects.equals(getPhone(), response.getPhone());
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        ClientInfoResponse that = (ClientInfoResponse) o;
+        return deposit == that.deposit &&
+                Objects.equals(email, that.email) &&
+                Objects.equals(address, that.address) &&
+                Objects.equals(phone, that.phone);
     }
 
     @Override
     public int hashCode() {
-
-        return Objects.hash(getId(), getFirstName(), getLastName(), getPatronymic(), getEmail(), getAddress(), getPhone(), getDeposit());
+        return Objects.hash(super.hashCode(), email, address, phone, deposit);
     }
 }

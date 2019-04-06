@@ -1,7 +1,6 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
-import net.thumbtack.onlineshop.database.mybatis.transfer.CategoryDTO;
 import net.thumbtack.onlineshop.model.entity.Category;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -15,13 +14,11 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryDaoImpl.class);
 
     @Override
-    public int addCategory(String name, String parentId) {
+    public void addCategory(Category category) {
         LOGGER.debug("CategoryDao addCategory");
-        // REVU никакого CategoryDTO не нужно. Передавайте сюда Category, у него все есть
-        CategoryDTO dto = new CategoryDTO(0, name, parentId);
         try(SqlSession sqlSession = getSession()) {
             try {
-                getCategoryMapper(sqlSession).insertCategory(dto);
+                getCategoryMapper(sqlSession).insertCategory(category);
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
                 sqlSession.rollback();
@@ -29,7 +26,6 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
             }
             sqlSession.commit();
         }
-        return dto.getId();
     }
 
     @Override
@@ -93,6 +89,19 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
                 return getCategoryMapper(sqlSession).getCategories();
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't getCategories in DB ", ex);
+                throw ex;
+            }
+        }
+    }
+
+    @Override
+    public Category findCategoryById(int id) {
+        LOGGER.debug("CategoryDao findCategoryById");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                return getCategoryMapper(sqlSession).findCategoryById(id);
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't findCategoryById in DB ", ex);
                 throw ex;
             }
         }

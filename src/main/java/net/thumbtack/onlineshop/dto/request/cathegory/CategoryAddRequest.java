@@ -2,9 +2,9 @@ package net.thumbtack.onlineshop.dto.request.cathegory;
 
 public class CategoryAddRequest {
     private String name;
-    private String parentId;
+    private Integer parentId; // необязателен
 
-    public CategoryAddRequest(String name, String parentId) {
+    public CategoryAddRequest(String name, Integer parentId) {
         this.name = name;
         this.parentId = parentId;
     }
@@ -19,10 +19,10 @@ public class CategoryAddRequest {
         this.name = name;
     }
 
-    public String getParentId() {
+    public Integer getParentId() {
         return parentId;
     }
-    public void setParentId(String parentId) {
+    public void setParentId(Integer parentId) {
         this.parentId = parentId;
     }
 }

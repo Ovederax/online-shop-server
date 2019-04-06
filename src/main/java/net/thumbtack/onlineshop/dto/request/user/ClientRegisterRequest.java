@@ -1,11 +1,5 @@
 package net.thumbtack.onlineshop.dto.request.user;
 
-import net.thumbtack.onlineshop.dto.response.ErrorContent;
-import net.thumbtack.onlineshop.model.exeptions.enums.UserExceptionEnum;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class ClientRegisterRequest {
     private String firstName;
     private String lastName;

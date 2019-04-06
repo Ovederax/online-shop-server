@@ -14,26 +14,25 @@ CREATE TABLE users (
     PRIMARY KEY(id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-
 CREATE TABLE administrators (
-    user_id INT(11) NOT NULL AUTO_INCREMENT,
+    userId INT(11) NOT NULL,
     position VARCHAR(50) NOT NULL,
 
-	FOREIGN KEY (user_id) REFERENCES users(id),
-    PRIMARY KEY(user_id)
+	FOREIGN KEY (userId) REFERENCES users(id),
+    PRIMARY KEY(userId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE clients (
-    user_id INT(11) NOT NULL AUTO_INCREMENT,
+    userId INT(11) NOT NULL,
     email VARCHAR(50) NOT NULL,
     address VARCHAR(50) NOT NULL,
     phone VARCHAR(50) NOT NULL,
 
-	FOREIGN KEY (user_id) REFERENCES users(id),
-    PRIMARY KEY(user_id)
+	FOREIGN KEY (userId) REFERENCES users(id),
+    PRIMARY KEY(userId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-CREATE TABLE goods (
+CREATE TABLE products (
     id INT(11) NOT NULL AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL,
     price INT(11),
@@ -52,33 +51,55 @@ CREATE TABLE categories (
     FOREIGN KEY (parentId) REFERENCES categories(id) ON DELETE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
-CREATE TABLE goods_categories(
+CREATE TABLE products_categories(
     id INT(11) NOT NULL AUTO_INCREMENT,
-    goodsId INT(11) NOT NULL,
+    productId INT(11) NOT NULL,
     categoryId INT(11) NOT NULL,
 
-    UNIQUE KEY goods_categories(goodsId, categoryId),
-    FOREIGN KEY(goodsId) REFERENCES goods(id),
+    UNIQUE KEY products_categories(productId, categoryId),
+    FOREIGN KEY(productId)  REFERENCES products(id),
     FOREIGN KEY(categoryId) REFERENCES categories(id),
     PRIMARY KEY (id)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE logged_users (
-    user_id INT(11) NOT NULL AUTO_INCREMENT,
+    userId INT(11) NOT NULL AUTO_INCREMENT,
     token VARCHAR(50) NOT NULL,
 
-	FOREIGN KEY (user_id) REFERENCES users(id),
-    PRIMARY KEY(user_id)
+	FOREIGN KEY (userId) REFERENCES users(id),
+    PRIMARY KEY(userId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE baskets (
     id INT(11) NOT NULL AUTO_INCREMENT,
     userId INT(11) NOT NULL,
-    goodsId INT(11) NOT NULL,
+    productId INT(11) NOT NULL,
     count INT(11),
 
     PRIMARY KEY (id),
     FOREIGN KEY (userId) REFERENCES users(id),
-    FOREIGN KEY(goodsId) REFERENCES goods(id),
-    UNIQUE KEY goods_categories(userId, goodsId)
+    FOREIGN KEY(productId) REFERENCES products(id),
+    UNIQUE KEY products_categories(userId, productId)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+CREATE TABLE purchases (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    /* переосмыслю, когда дойду,
+     нужно рассмотреть систуацию с изменением уже купленных продуктов
+     возможно при совершении покупки будет создаватся копия product со своим id + здесь id на актуальную версию*/
+    productId INT(11) NOT NULL,
+    buyCount INT(11) NOT NULL,
+    buyPrice INT(11) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY(productId) REFERENCES products(id)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
+
+CREATE TABLE deposits (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    clientId  INT(11) NOT NULL,
+    money INT(11) NOT NULL,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (clientId) REFERENCES clients(userId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;

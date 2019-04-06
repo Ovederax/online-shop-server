@@ -2,7 +2,7 @@ package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper;
-import net.thumbtack.onlineshop.database.mybatis.transfer.ProductDTO;
+import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
     }
 
     @Override
-    public void updateProduct(ProductDTO dto) {
+    public void updateProduct(Product dto, List<Integer> categories) {
         LOGGER.debug("ProductDao updateProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -118,7 +118,7 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
     }
 
     @Override
-    public List<Product> buyProduct(int userId, ProductDTO productDTO) {
+    public List<Product> buyProduct(Client userId, Product product, Integer count) {
         //    Если количество единиц в запросе не указано, то оно принимается равным 1.
 //    Запрос отвергается, если
 //    ●  не имеется требуемое количество единиц товара,
@@ -130,7 +130,7 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
                 ProductMapper mapper = getProductMapper(sqlSession);
 
             } catch (RuntimeException ex) {
-                LOGGER.info("Can't buyProduct {} in DB ", productDTO, ex);
+                LOGGER.info("Can't buyProduct {} in DB ", product, ex);
                 sqlSession.rollback();
                 throw ex;
             }

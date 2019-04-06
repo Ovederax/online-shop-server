@@ -3,11 +3,8 @@ package net.thumbtack.onlineshop.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import net.thumbtack.onlineshop.database.dao.CategoryDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.database.mybatis.transfer.ProductDTO;
 import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
 import net.thumbtack.onlineshop.dto.request.product.ProductBuyRequest;
 import net.thumbtack.onlineshop.dto.request.product.ProductEditRequest;
@@ -16,24 +13,26 @@ import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
-import net.thumbtack.onlineshop.model.exeptions.UserException;
+import net.thumbtack.onlineshop.model.entity.User;
+import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class ProductService {
-    private @Autowired ObjectMapper mapper;
     private ProductDao productDao;
+    private UserDao userDao;
     private UserService userService;
+    private @Autowired ObjectMapper mapper;
 
     @Autowired
-    public ProductService(ProductDao productDao, UserService userService) {
+    public ProductService(ProductDao productDao, UserDao userDao, UserService userService) {
         this.productDao = productDao;
+        this.userDao = userDao;
         this.userService = userService;
     }
 
@@ -45,7 +44,7 @@ public class ProductService {
         return list;
     }
 
-    public String addProduct(ProductAddRequest dto, String token) throws UserException, JsonProcessingException {
+    public ProductResponse addProduct(ProductAddRequest dto, String token) throws ServerException, JsonProcessingException {
         userService.checkAdministratorPrivileges(token);
         int id = productDao.addProduct(new Product(dto.getName(), dto.getPrice(), dto.getCount(), null), dto.getCategories());
         Product p = productDao.findProductById(id);
@@ -54,36 +53,37 @@ public class ProductService {
         for(Category it : p.getCategories()) {
             list.add(it.getId());
         }
-        return mapper.writeValueAsString(new ProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCount(), list));
+        return new ProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCount(), list);
     }
 
-    public String updateProduct(int id, ProductEditRequest dto, String token) throws UserException, JsonProcessingException {
+    public ProductResponse updateProduct(int id, ProductEditRequest dto, String token) throws ServerException, JsonProcessingException {
         userService.checkAdministratorPrivileges(token);
-        productDao.updateProduct(new ProductDTO(id, dto.getName(), dto.getPrice(), dto.getCount(), dto.getCategories()));
-        Product p = productDao.findProductById(id);
+        Product product = productDao.findProductById(id);
+        // возможно стоило сделать запрос в categoryDao на список категорий, но это будет бесполезной тратой ресурсов
+        product.updateEntity(dto.getName(), dto.getPrice(), dto.getCount());
+        productDao.updateProduct(product, dto.getCategories());
 
         List<Integer> list = new ArrayList<>();
-        for(Category it : p.getCategories()) {
+        for(Category it : product.getCategories()) {
             list.add(it.getId());
         }
-        return mapper.writeValueAsString(new ProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCount(), list));
+        return new ProductResponse(product.getId(), product.getName(), product.getPrice(), product.getCount(), list);
     }
 
-    public void deleteProduct(int id, String token) throws UserException {
+    public void deleteProduct(int id, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         productDao.deleteProductById(id);
     }
 
-    public String getProduct(int id, String token) throws UserException, JsonProcessingException {
-        userService.checkUserExistByToken(token);
+    public ProductGetResponse getProduct(int id, String token) throws ServerException, JsonProcessingException {
+        User u = userDao.findUserByToken(token); // check user exist
         Product p = productDao.findProductById(id);
-        return mapper.writeValueAsString(new ProductGetResponse(p.getId(), p.getName(), p.getPrice(),
-                p.getCount(), getNamesCategories(p)));
+        return new ProductGetResponse(p.getId(), p.getName(), p.getPrice(), p.getCount(), getNamesCategories(p));
     }
 
-    public String getProductsList(String category, String order, String token) throws UserException, IOException {
-        userService.checkUserExistByToken(token);
-        List<Integer> categoriesId = null;
+    public List<ProductGetResponse> getProductsList(String category, String order, String token) throws ServerException, IOException {
+        User u = userDao.findUserByToken(token); // check user exist
+        List<Integer> categoriesId;
         if(category == null || category.equals("")) {
             categoriesId = null;
         } else {
@@ -96,16 +96,16 @@ public class ProductService {
         for(Product it : products) {
             list.add(new ProductGetResponse(it.getId(), it.getName(), it.getPrice(), it.getCount(), getNamesCategories(it)));
         }
-        return mapper.writeValueAsString(list);
+        return list;
     }
 
-    public String buyProduct(ProductBuyRequest dto, String token) throws UserException, JsonProcessingException {
-        Client c = userService.getClientByToken(token);
-        List<Product> list = productDao.buyProduct(c.getId(), new ProductDTO(dto.getId(), dto.getName(), dto.getPrice(), dto.getCount(), null));
+    public List<ProductBuyRequest> buyProduct(ProductBuyRequest dto, String token) throws ServerException, JsonProcessingException {
+        Client client = userService.getClientByToken(token);
+        List<Product> list = productDao.buyProduct(client, new Product(dto.getId(), dto.getName(), dto.getPrice(), 0, null), dto.getCount());
         List<ProductBuyRequest> out = new ArrayList<>();
         for(Product it : list) {
             out.add(new ProductBuyRequest(it.getId(), it.getName(), it.getPrice(), it.getCount()));
         }
-        return mapper.writeValueAsString(out);
+        return out;
     }
 }
