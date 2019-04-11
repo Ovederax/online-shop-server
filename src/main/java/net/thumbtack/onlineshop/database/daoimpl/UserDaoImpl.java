@@ -107,14 +107,14 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public void addMoneyDeposit(int id, String deposit) {
-        LOGGER.debug("UserDAO addMoneyDeposit");
+    public void reloadMoneyDeposit(Client client) {
+        LOGGER.debug("UserDAO reloadMoneyDeposit");
         int editCount;
         try(SqlSession sqlSession = getSession()) {
             try {
-                getUserMapper(sqlSession);
+                getUserMapper(sqlSession).reloadMoneyDeposit(client);
             } catch (RuntimeException ex) {
-                LOGGER.info("Can't addMoneyDeposit DB ", ex);
+                LOGGER.info("Can't reloadMoneyDeposit DB ", ex);
                 sqlSession.rollback();
                 throw ex;
             }

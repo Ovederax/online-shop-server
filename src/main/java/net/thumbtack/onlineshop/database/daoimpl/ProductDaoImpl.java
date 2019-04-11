@@ -2,14 +2,22 @@ package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper;
+import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
+import net.thumbtack.onlineshop.model.exeptions.ServerException;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Array;
+import java.util.Collections;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.jar.JarEntry;
+import java.util.stream.Collectors;
 
 @Component
 public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
@@ -22,7 +30,9 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
             try {
                 ProductMapper mapper = getProductMapper(sqlSession);
                 mapper.addProduct(product);
-                mapper.insertProductCategories(product, categories);
+                if(categories != null) {
+                    mapper.insertProductCategories(product, categories);
+                }
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't addProduct {} in DB ", product, ex);
                 sqlSession.rollback();
@@ -38,8 +48,7 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
         LOGGER.debug("ProductDao findProductById");
         try(SqlSession sqlSession = getSession()) {
             try {
-                ProductMapper mapper = getProductMapper(sqlSession);
-                return mapper.findProductById(id);
+                return getProductMapper(sqlSession).findProductById(id);
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't findProductById {} in DB ", id, ex);
                 throw ex;
@@ -48,14 +57,24 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
     }
 
     @Override
-    public void updateProduct(Product dto, List<Integer> categories) {
+    public void updateProduct(Product product, String name, Integer price, Integer counter, List<Integer> categories) throws ServerException {
         LOGGER.debug("ProductDao updateProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
                 ProductMapper mapper = getProductMapper(sqlSession);
-                mapper.updateProduct(dto);
+                mapper.updateProduct(product, name, price, counter);
+
+
+                if(categories != null) {
+                    mapper.deleteAllProductCategories(product);
+                    if(categories.size() != 0) {
+                        //Неописанное поведение в ТЗ
+                        throw new ServerException(ErrorCode.UPDATE_PRODUCT_SET_CATEGORIES_NO_SUPPORT);
+                        //mapper.insertProductCategories(product, categories);
+                    }
+                }
             } catch (RuntimeException ex) {
-                LOGGER.info("Can't updateProduct {} in DB ", dto, ex);
+                LOGGER.info("Can't updateProduct {} in DB ", product, ex);
                 sqlSession.rollback();
                 throw ex;
             }
@@ -64,57 +83,18 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
     }
 
     @Override
-    public void deleteProductById(int id) {
-        /**Удаление товара разрешается даже если количество его
-         единиц не равно 0.
-         Удаление товара разрешено даже если удаляемый товар
-         находится в какой-то корзине покупателя. В случае
-         удаления такого товара он из корзины не удаляется,
-         но покупка его из корзины становится невозможной.*/
-        LOGGER.debug("ProductDao deleteProductById");
+    public void markProductAsDeleted(Product product) {
+        LOGGER.debug("ProductDao markProductAsDeleted");
         try(SqlSession sqlSession = getSession()) {
             try {
-                ProductMapper mapper = getProductMapper(sqlSession);
-                mapper.deleteProductById(id);
+                getProductMapper(sqlSession).markProductAsDeleted(product);
             } catch (RuntimeException ex) {
-                LOGGER.info("Can't deleteProductById in DB ", ex);
+                LOGGER.info("Can't markProductAsDeleted in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
             }
             sqlSession.commit();
         }
-    }
-
-    @Override
-    public List<Product> getProductsList(List<Integer> categoriesId, String order) {
-        /** Возвращается список товаров, принадлежащих хотя бы одной из
-         указанных категорий. Если список категорий не указан в запросе,
-         возвращается полный список товаров, включая товары, не
-         относящиеся ни к одной категории. Если передается пустой список
-         категорий, выдается список товаров, не относящихся ни к одной
-         категории.
-         Если order = “product”, список выдается, отсортированный по
-         именам товаров, и в этом случае в поле “categories” приводится
-         список категорий, к которым он относится. Каждый товар приводится
-         в списке только один раз.
-         Если order = “category”, список выдается, отсортированный по
-         именам категорий, а внутри категории - по именам товаров.
-         В этих случаях каждый товар указывается для каждой своей категории,
-         а в поле categories возвращается лишь одна категория.
-         Товары, не относящиеся ни к одной категории, выдаются в начале
-         списка.
-         Если order не присутствует в запросе,то считается,
-         что order = “product”. */
-        LOGGER.debug("ProductDao getProductsList");
-        try(SqlSession sqlSession = getSession()) {
-            try {
-
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't getProductsList in DB ", ex);
-                throw ex;
-            }
-        }
-        return null;
     }
 
     @Override
@@ -137,5 +117,49 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
             sqlSession.commit();
         }
         return null;
+    }
+
+    @Override
+    public List<Product> getProductListOrderProduct(List<Integer> categoriesId) {
+        LOGGER.debug("ProductDao getProductListOrderProduct");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                //if(categoriesId.size() != 0)
+                StringJoiner joiner = new StringJoiner(",");
+                for(Integer it: categoriesId) {
+                    joiner.add(it.toString());
+                }
+                return getProductMapper(sqlSession).getProductListOrderProduct(joiner.toString());
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't getProductListOrderProduct in DB ", ex);
+                throw ex;
+            }
+        }
+    }
+
+    @Override
+    public List<Product> getProductListOrderProductNoCategory() {
+        LOGGER.debug("ProductDao getProductListOrderProductNoCategory");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                return getProductMapper(sqlSession).getProductListOrderProductNoCategory();
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't getProductListOrderProductNoCategory in DB ", ex);
+                throw ex;
+            }
+        }
+    }
+
+    @Override
+    public List<Category> getProductListOrderCategory(List<Integer> categoriesId) {
+        LOGGER.debug("ProductDao getProductListOrderProduct");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                return getProductMapper(sqlSession).getProductListOrderCategory(categoriesId);
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't getProductListOrderProduct in DB ", ex);
+                throw ex;
+            }
+        }
     }
 }

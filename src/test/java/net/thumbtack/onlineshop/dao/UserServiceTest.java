@@ -11,13 +11,11 @@ import org.junit.Test;
 //@RunWith(SpringRunner.class)
 //@SpringBootTest
 public class UserServiceTest {
-    private UserDao userDao= new UserDaoImpl();
-    private CommonDao commonDao;
     private UserService userService;
 
     @Before
     public void before() {
-        userDao.clearData();
+
     }
 
     @Test

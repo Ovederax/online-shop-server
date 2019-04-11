@@ -1,6 +1,5 @@
 package net.thumbtack.onlineshop.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryEditRequest;
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -83,25 +81,18 @@ public class CategoryService {
 
     public List<CategoryGetResponse> getCategories(String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
-        List<Category> categories = categoryDao.getCategories();
+        List<Category> categories = categoryDao.getParentsCategories();
         List<CategoryGetResponse> out = new ArrayList<CategoryGetResponse>();
-
-
-        for(Category it : categories) {
-            if(it.getParent() != null) {
-                out.add(new CategoryGetResponse(it.getId(), it.getName(), it.getParent().getId(), it.getParent().getName()));
-            } else {
-                out.add(new CategoryGetResponse(it.getId(), it.getName(), 0, null));
-            }
-        }
-        // ??? нужно подумать ???
-        out.sort(Comparator.comparing(CategoryGetResponse::getName));
-        return out;
-
 
         /**Список выдается, отсортированный по именам категорий,
          за каждой из которых следуют ее подкатегории,
          также отсортированные по имени*/
-
+        for(Category it : categories) {
+            out.add(new CategoryGetResponse(it.getId(), it.getName(),0, null));
+            for(Category subIt : it.getSubCategories()) {
+                out.add((new CategoryGetResponse(subIt.getId(), subIt.getName(), it.getId(), it.getName())));
+            }
+        }
+        return out;
     }
 }

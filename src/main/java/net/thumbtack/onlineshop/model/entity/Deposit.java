@@ -62,4 +62,8 @@ public class Deposit {
                 ", money=" + money +
                 '}';
     }
+
+    public void addMoney(int deposit) {
+        money += deposit;
+    }
 }

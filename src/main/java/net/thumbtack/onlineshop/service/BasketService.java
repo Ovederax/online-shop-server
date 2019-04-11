@@ -1,7 +1,6 @@
 package net.thumbtack.onlineshop.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.thumbtack.onlineshop.database.dao.BasketDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.dto.request.basket.BasketBuyProductRequest;
@@ -57,7 +56,7 @@ public class BasketService {
         List<Product> p = basketDao.getProductsInBasket();
         List<BasketResponse> list = new ArrayList<>(p.size());
         for(Product it : p) {
-            list.add(new BasketResponse(it.getId(), it.getName(), it.getPrice(), it.getCount()));
+            list.add(new BasketResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter()));
         }
         return list;
     }
@@ -81,6 +80,8 @@ public class BasketService {
 //                Если  суммарная  стоимость  всей  покупки  (с  учетом  вышесказанного)  превышает  количество  денег  на  счете  клиента,  запрос
 //        отвергается целиком.
 //        В Response возвращаются список купленных товаров и список товаров, оставшихся в корзине.
+
+        /**Покупка удаленных продуктов из корзины не допускается.*/
         Client client = userService.getClientByToken(token);
 
         return new BasketBuyProductResponse();

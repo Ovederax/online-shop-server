@@ -8,6 +8,16 @@ public class ProductAddRequest {
     private int count;
     private List<Integer> categories;
 
+    public ProductAddRequest(String name, int price, int count, List<Integer> categories) {
+        this.name = name;
+        this.price = price;
+        this.count = count;
+        this.categories = categories;
+    }
+
+    public ProductAddRequest() {
+    }
+
     public String getName() {
         return name;
     }

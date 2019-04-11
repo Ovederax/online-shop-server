@@ -39,17 +39,25 @@ public interface CategoryMapper {
     @Delete("DELETE FROM categories WHERE id=#{id}")
     void deleteCategoryById(int id);
 
-    @Select("SELECT * FROM categories")
+    @Select("SELECT * FROM categories WHERE parentId=#{parentId} GROUP BY name")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "parent", column = "parentId", javaType = Category.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
-            @Result(property = "subCategories", column = "id", javaType = List.class,
-                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
     })
-    List<Category> getCategories();
+    List<Category> findSubCategoryByParentId(int parentId);
+
+    @Select("SELECT * FROM categories WHERE parentId IS NULL GROUP BY name")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "subCategories", column = "id", javaType = List.class,
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findSubCategoryByParentId", fetchType = FetchType.LAZY)),
+            @Result(property = "products", column = "id", javaType = List.class,
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
+    })
+    List<Category> getParentsCategories();
 
     @Delete("DELETE FROM categories")
     void deleteAllCategory();

@@ -23,7 +23,6 @@ import java.util.List;
 
 @RestController
 public class ProductController {
-    @Autowired private ObjectMapper mapper;
     private ProductService productService;
 
     @Autowired
@@ -34,21 +33,21 @@ public class ProductController {
     @PostMapping(path="/api/products", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
     public ProductResponse addProduct(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
-                                      @Valid @RequestBody ProductAddRequest dto, HttpServletResponse response) throws ServerException, JsonProcessingException {
+                                      @Valid @RequestBody ProductAddRequest dto, HttpServletResponse response) throws ServerException {
         response.setStatus(HttpServletResponse.SC_OK);
         return productService.addProduct(dto, cookie.getValue());
     }
 
     @GetMapping(path="/api/products/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
     public ProductGetResponse getProduct(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
-                                         @PathVariable int id, HttpServletResponse response) throws JsonProcessingException, ServerException {
+                                         @PathVariable int id, HttpServletResponse response) throws ServerException {
         response.setStatus(HttpServletResponse.SC_OK);
         return productService.getProduct(id, cookie.getValue());
     }
 
     @PutMapping(path="/api/products/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
     public ProductResponse updateProduct(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
-                                         @PathVariable int id, @Valid @RequestBody ProductEditRequest dto, HttpServletResponse response) throws ServerException, JsonProcessingException {
+                                         @PathVariable int id, @Valid @RequestBody ProductEditRequest dto, HttpServletResponse response) throws ServerException {
         response.setStatus(HttpServletResponse.SC_OK);
         return productService.updateProduct(id, dto, cookie.getValue());
     }
@@ -63,8 +62,8 @@ public class ProductController {
 
     @GetMapping(path="/api/products", produces = MediaType.APPLICATION_JSON_VALUE )
     public List<ProductGetResponse> getProducts(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
-                                                @RequestParam String category, @RequestParam String order, HttpServletResponse response) throws ServerException, IOException {
+                                                @RequestParam List<Integer> categoriesId, @RequestParam String order, HttpServletResponse response) throws ServerException, IOException {
         response.setStatus(HttpServletResponse.SC_OK);
-        return productService.getProductsList(category, order, cookie.getValue());
+        return productService.getProductsList(categoriesId, order, cookie.getValue());
     }
 }

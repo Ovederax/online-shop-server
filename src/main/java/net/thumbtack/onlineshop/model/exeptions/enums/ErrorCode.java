@@ -22,7 +22,9 @@ public enum ErrorCode {
 
     //-----------CATHEGORIES----------
     CATEGORY_NO_EXISTS("id",   "This category is no exist"),
-    BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY("parentId", "You no can set subcategory into subcategory");
+    BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY("parentId", "You no can set subcategory into subcategory"),
+    UPDATE_PRODUCT_SET_CATEGORIES_NO_SUPPORT("categories", "You no can set categories in product where update it"),
+    BAD_ORDER_FOR_GET_PROGUCT_LIST("order", "Bad order for get products list");
 
 
 

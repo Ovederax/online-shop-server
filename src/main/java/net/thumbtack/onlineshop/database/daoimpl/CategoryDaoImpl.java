@@ -82,13 +82,13 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     }
 
     @Override
-    public List<Category> getCategories() {
-        LOGGER.debug("CategoryDao getCategories");
+    public List<Category> getParentsCategories() {
+        LOGGER.debug("CategoryDao getParentsCategories");
         try(SqlSession sqlSession = getSession()) {
             try {
-                return getCategoryMapper(sqlSession).getCategories();
+                return getCategoryMapper(sqlSession).getParentsCategories();
             } catch (RuntimeException ex) {
-                LOGGER.info("Can't getCategories in DB ", ex);
+                LOGGER.info("Can't getParentsCategories in DB ", ex);
                 throw ex;
             }
         }

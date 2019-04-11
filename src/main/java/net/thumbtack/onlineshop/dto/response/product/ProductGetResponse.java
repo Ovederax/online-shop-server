@@ -1,6 +1,7 @@
 package net.thumbtack.onlineshop.dto.response.product;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ProductGetResponse {
     private int id;
@@ -58,5 +59,23 @@ public class ProductGetResponse {
 
     public void setCategoriesNames(List<String> categoriesNames) {
         this.categoriesNames = categoriesNames;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ProductGetResponse)) return false;
+        ProductGetResponse that = (ProductGetResponse) o;
+        return getId() == that.getId() &&
+                getPrice() == that.getPrice() &&
+                getCount() == that.getCount() &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getCategoriesNames(), that.getCategoriesNames());
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(getId(), getName(), getPrice(), getCount(), getCategoriesNames());
     }
 }

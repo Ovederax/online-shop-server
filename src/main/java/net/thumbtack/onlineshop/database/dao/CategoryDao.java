@@ -9,6 +9,6 @@ public interface CategoryDao {
     Category getCategory(int id);
     void updateCategory (int id, String name, Integer parentId);
     void deleteCategory (int id);
-    List<Category> getCategories();
+    List<Category> getParentsCategories();
     Category findCategoryById(int id);
 }

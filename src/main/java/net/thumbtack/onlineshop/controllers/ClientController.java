@@ -19,8 +19,6 @@ import java.util.List;
 
 @RestController
 public class ClientController {
-    @Autowired
-    private ObjectMapper mapper;
     private UserService userService;
     private ProductService productService;
 
@@ -33,17 +31,14 @@ public class ClientController {
             produces = MediaType.APPLICATION_JSON_VALUE )
     public UserInfoResponse addMoneyDeposit(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody DepositMoneyRequest dto, HttpServletResponse response) throws ServerException, JsonProcessingException {
         response.setStatus(HttpServletResponse.SC_OK);
-        userService.addMoneyDeposit(dto, cookie.getValue());
-        return userService.getUserInfo(cookie.getValue());
+        return userService.addMoneyDeposit(dto, cookie.getValue());
     }
 
-    @GetMapping(path="/api/deposits", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE )
+    @GetMapping(path="/api/deposits", produces = MediaType.APPLICATION_JSON_VALUE )
     public UserInfoResponse getMoneyDeposit(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) throws ServerException, JsonProcessingException {
         response.setStatus(HttpServletResponse.SC_OK);
         return userService.getMoneyDeposit(cookie.getValue());
     }
-
 
     @PostMapping(path="/api/purchases", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )

@@ -7,21 +7,21 @@ public class Product {
     private int id;
     private String name;
     private int price;
-    private int count;
+    private int counter;
     private int isDeleted;
     private List<Category> categories;
 
-    public Product(int id, String name, int price, int count, List<Category> categories) {
+    public Product(int id, String name, int price, int counter, List<Category> categories) {
         this.id = id;
         this.name = name;
         this.price = price;
-        this.count = count;
+        this.counter = counter;
         this.isDeleted = 0;
         this.categories = categories;
     }
 
-    public Product(String name, int price, int count, List<Category> categories) {
-        this(0, name, price, count, categories);
+    public Product(String name, int price, int counter, List<Category> categories) {
+        this(0, name, price, counter, categories);
     }
 
     public Product() {
@@ -44,12 +44,12 @@ public class Product {
         this.price = price;
     }
 
-    public int getCount() {
-        return count;
+    public int getCounter() {
+        return counter;
     }
 
-    public void setCount(int count) {
-        this.count = count;
+    public void setCounter(int counter) {
+        this.counter = counter;
     }
 
     public List<Category> getCategories() {
@@ -82,7 +82,7 @@ public class Product {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", price=" + price +
-                ", count=" + count +
+                ", counter=" + counter +
                 ", isDeleted=" + isDeleted +
                 ", categories=" + categories +
                 '}';
@@ -95,7 +95,7 @@ public class Product {
         Product product = (Product) o;
         return id == product.id &&
                 price == product.price &&
-                count == product.count &&
+                counter == product.counter &&
                 isDeleted == product.isDeleted &&
                 Objects.equals(name, product.name) &&
                 Objects.equals(categories, product.categories);
@@ -103,7 +103,7 @@ public class Product {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, price, count, isDeleted, categories);
+        return Objects.hash(id, name, price, counter, isDeleted, categories);
     }
 
     /**Update field if arguments is not null*/
@@ -113,6 +113,6 @@ public class Product {
         if(price != null)
             this.price = price;
         if(count != null)
-            this.count = count;
+            this.counter = count;
     }
 }

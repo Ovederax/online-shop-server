@@ -133,9 +133,11 @@ public class UserService {
         return new ClientInfoResponse(c.getId(), c.getFirstname(), c.getLastname(), c.getPatronymic(), c.getEmail(), c.getAddress(), c.getPhone(), c.getDeposit().getMoney());
     }
 
-    public void addMoneyDeposit(DepositMoneyRequest dto, String token) throws ServerException {
-        Client c = getClientByToken(token);
-        userDao.addMoneyDeposit(c.getId(), dto.getDeposit());
+    public UserInfoResponse addMoneyDeposit(DepositMoneyRequest dto, String token) throws ServerException {
+        Client client = getClientByToken(token);
+        client.getDeposit().addMoney( Integer.parseInt(dto.getDeposit()) );
+        userDao.reloadMoneyDeposit(client);
+        return getUserInfo(token);
     }
 
     public UserInfoResponse getMoneyDeposit(String token) throws ServerException {

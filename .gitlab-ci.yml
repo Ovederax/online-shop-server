@@ -17,7 +17,7 @@ compile_test:
     script:
     #- apt-get update && apt-get -y upgrade && apt-get -y install mysql-client
     - find /var/lib/mysql/mysql -exec touch -c -a {} + && service mysql start 
-    - mysql -h localhost -u test -ptest < sql/ttschool.sql
+    - mysql -h localhost -u test -ptest < sql/onlineshop.sql
     - mvn $MAVEN_CLI_OPTS clean compile test
 
   

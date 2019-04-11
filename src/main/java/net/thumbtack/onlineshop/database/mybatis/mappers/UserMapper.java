@@ -98,6 +98,8 @@ public interface UserMapper {
     @Delete("DELETE FROM logged_users")
     void deleteAllLoginRecords();
 
+    @Update("UPDATE deposits SET money=#{deposit.money} WHERE clientId=#{id}")
+    void reloadMoneyDeposit(Client client);
 
 
     //-------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -43,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class CategoryControllerTest {
     @Autowired private WebApplicationContext webApplicationContext;
     @Autowired private ObjectMapper mapper;
+    @Autowired private CommonUtils utils;
     private MockMvc mvc;
 
     @Before
@@ -51,28 +53,9 @@ public class CategoryControllerTest {
         mvc.perform(get("/api/debug/clear")).andExpect(status().isOk());
     }
 
-    private Cookie adminRegisterAndLogin_getCookie() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
-
-        ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
-        res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("admName"))
-                .andExpect(cookie().exists("JAVASESSIONID"));
-        MvcResult mvcRes = res.andReturn();
-        String content = mvcRes.getResponse().getContentAsString();
-        Cookie cookie = mvcRes.getResponse().getCookie("JAVASESSIONID");
-        assertNotNull(cookie);
-        AdministratorInfoResponse actual = mapper.readValue(content, AdministratorInfoResponse.class);
-        respExpected.setId(actual.getId());
-
-        assertEquals(respExpected, actual);
-        return cookie;
-    }
-
     @Test
     public void addCategoryTest() throws Exception {
-        Cookie token = adminRegisterAndLogin_getCookie();
+        Cookie token = utils.registerTestAdmin(mvc);
         CategoryAddRequest req = new CategoryAddRequest("Phones", null);
         CategoryAddResponse respExpected = new CategoryAddResponse( 0, "Phones", 0, null);
 
@@ -92,7 +75,7 @@ public class CategoryControllerTest {
 
     @Test
     public void getCategoryTest() throws Exception {
-        Cookie token = adminRegisterAndLogin_getCookie();
+        Cookie token = utils.registerTestAdmin(mvc);
 
         ResultActions res = mvc.perform(post("/api/categories")
                 .cookie(token)
@@ -122,7 +105,7 @@ public class CategoryControllerTest {
 
     @Test
     public void updateCategoryTest() throws Exception {
-        Cookie token = adminRegisterAndLogin_getCookie();
+        Cookie token = utils.registerTestAdmin(mvc);
         ResultActions res = mvc.perform(post("/api/categories")
                 .cookie(token)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -157,7 +140,7 @@ public class CategoryControllerTest {
 
     @Test
     public void deleteCategoryTest() throws Exception  {
-        Cookie token = adminRegisterAndLogin_getCookie();
+        Cookie token = utils.registerTestAdmin(mvc);
         ResultActions res = mvc.perform(post("/api/categories")
                 .cookie(token)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -191,15 +174,14 @@ public class CategoryControllerTest {
 
     @Test
     public void getCategoriesTest() throws Exception {
-        Cookie token = adminRegisterAndLogin_getCookie();
+        Cookie token = utils.registerTestAdmin(mvc);
         List<CategoryAddRequest> list = Arrays.asList(
                 new CategoryAddRequest("Phones", null),
                 new CategoryAddRequest("Dress", null),
                 new CategoryAddRequest("Games", null));
-        List<CategoryAddResponse> responseList = new ArrayList<>(3);
-        List<CategoryGetResponse> needGetList = new ArrayList<>(3);
-        for(int i=0; i<3; ++i) {
-            CategoryAddRequest item = list.get(i);
+
+        List<CategoryGetResponse> need = new ArrayList<>(5);
+        for(CategoryAddRequest item : list) {
             ResultActions res = mvc.perform(post("/api/categories")
                     .cookie(token)
                     .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -209,17 +191,39 @@ public class CategoryControllerTest {
             String content = mvcRes.getResponse().getContentAsString();
             CategoryAddResponse actual = mapper.readValue(content, CategoryAddResponse.class);
 
-            responseList.add(new CategoryAddResponse(actual.getId(), item.getName(), 0, null));
-            needGetList.add(new CategoryGetResponse(actual.getId(), item.getName(), 0, null));
-            assertEquals(responseList.get(i), actual);
+
+            assertEquals(new CategoryAddResponse(actual.getId(), item.getName(), 0, null), actual);
+            need.add(new CategoryGetResponse(actual.getId(), item.getName(), 0, null));
+        }
+
+        List<CategoryAddRequest> subList = Arrays.asList(
+                new CategoryAddRequest("Smartphones", need.get(0).getId()),
+                new CategoryAddRequest("RPG", need.get(2).getId()));
+        List<String> parentNames = Arrays.asList(need.get(0).getName(), need.get(2).getName());
+
+        for(int i=0; i<subList.size(); ++i) {
+            CategoryAddRequest item = subList.get(i);
+            ResultActions res = mvc.perform(post("/api/categories")
+                    .cookie(token)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .content(mapper.writeValueAsString(item)));
+            res.andExpect(status().isOk());
+            MvcResult mvcRes = res.andReturn();
+            String content = mvcRes.getResponse().getContentAsString();
+            CategoryAddResponse actual = mapper.readValue(content, CategoryAddResponse.class);
+
+
+            assertEquals(new CategoryAddResponse(actual.getId(), item.getName(), item.getParentId(), parentNames.get(i)), actual);
+            need.add(new CategoryGetResponse(actual.getId(), item.getName(),  item.getParentId(), parentNames.get(i)));
         }
 
         ResultActions res = mvc.perform(get("/api/categories/").cookie(token));
         res.andExpect(status().isOk());
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
-        needGetList.sort(Comparator.comparing(CategoryGetResponse::getName));
-        assertEquals(needGetList, mapper.readValue(content, new TypeReference<List<CategoryGetResponse>>() {}));
+
+        List<CategoryGetResponse> sortedNeedGetList = Arrays.asList(need.get(1), need.get(2), need.get(4), need.get(0), need.get(3));
+        assertEquals(sortedNeedGetList, mapper.readValue(content, new TypeReference<List<CategoryGetResponse>>() {}));
     }
 }
 
