@@ -39,7 +39,7 @@ public interface CategoryMapper {
     @Delete("DELETE FROM categories WHERE id=#{id}")
     void deleteCategoryById(int id);
 
-    @Select("SELECT * FROM categories WHERE parentId=#{parentId} GROUP BY name")
+    @Select("SELECT * FROM categories WHERE parentId=#{parentId} ORDER BY name")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "parent", column = "parentId", javaType = Category.class,
@@ -49,7 +49,7 @@ public interface CategoryMapper {
     })
     List<Category> findSubCategoryByParentId(int parentId);
 
-    @Select("SELECT * FROM categories WHERE parentId IS NULL GROUP BY name")
+    @Select("SELECT * FROM categories WHERE parentId IS NULL ORDER BY name")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "subCategories", column = "id", javaType = List.class,
