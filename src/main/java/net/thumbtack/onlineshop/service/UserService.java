@@ -71,6 +71,7 @@ public class UserService {
 
     /** @return token in uuid format */
     public UserLoginResponse login(UserLoginRequest r) throws ServerException {
+    	// REVU create variable where you need in it, i.e. before  userDao.login(user, token);
         UUID token = UUID.randomUUID();
         User user = userDao.findUserByLogin(r.getLogin());
         if(user == null) {

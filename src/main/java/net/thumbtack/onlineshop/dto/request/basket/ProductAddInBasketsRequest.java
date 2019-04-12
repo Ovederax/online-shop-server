@@ -2,6 +2,7 @@ package net.thumbtack.onlineshop.dto.request.basket;
 
 import java.util.Objects;
 
+// REVU AddProductToBasketsRequest
 public class ProductAddInBasketsRequest {
     private int id;
     private String name;

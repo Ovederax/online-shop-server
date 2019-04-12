@@ -3,6 +3,7 @@ package net.thumbtack.onlineshop.dto.response.product;
 import java.util.List;
 import java.util.Objects;
 
+// REVU GetProductResponse
 public class ProductGetResponse {
     private int id;
     private String name;

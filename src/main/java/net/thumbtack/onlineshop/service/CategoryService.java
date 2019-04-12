@@ -27,13 +27,19 @@ public class CategoryService {
     }
 
     public CategoryAddResponse addCategory(CategoryAddRequest dto, String token) throws ServerException {
+    	// REVU better do not call one service from another service
+    	// make this method common for all services
+    	// e.g. create class ServiceBase and make all services descendants of ServiceBase
+    	// and move this method to ServiceBase as protected
         userService.checkAdministratorPrivileges(token);
         Category parent = null;
         if(dto.getParentId() != null) {
             parent = categoryDao.findCategoryById(dto.getParentId());
         }
+        // REVU do not use  one-letter names
         Category c = new Category(dto.getName(), parent);
         categoryDao.addCategory(c);
+        // REVU p and parent are the same
         Category p = c.getParent();
         if(p!=null) {
             return new CategoryAddResponse(c.getId(), c.getName(), p.getId(), p.getName());

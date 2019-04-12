@@ -36,7 +36,9 @@ public class Client extends User{
     }
 
     public void updateEntity(String firstname, String lastname, String patronymic, String email, String address, String phone, String password) {
-        setFirstname(firstname);
+        // REVU do not set fields of parent class in this class
+    	// use super(...) or this(...)
+    	setFirstname(firstname);
         setLastname(lastname);
         setPatronymic(patronymic);
         setPassword(password);

@@ -58,6 +58,7 @@ public class ProductService {
     public ProductResponse addProduct(ProductAddRequest dto, String token) throws ServerException {
         userService.checkAdministratorPrivileges(token);
         int id = productDao.addProduct(new Product(dto.getName(), dto.getPrice(), dto.getCount(), null), dto.getCategories());
+        // REVU why do you need to get it by id ? You just added it and has it! 
         Product p = productDao.findProductById(id);
         return new ProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCounter(), getCategoriesListId(p.getCategories()));
     }
@@ -66,7 +67,9 @@ public class ProductService {
         userService.checkAdministratorPrivileges(token);
         Product product = productDao.findProductById(id);
         // возможно стоило сделать запрос в categoryDao на список категорий, но это будет бесполезной тратой ресурсов
+        // REVU Why ? You loaded Product and it loaded it's categories
         productDao.updateProduct(product, dto.getName(), dto.getPrice(), dto.getCount(), dto.getCategories());
+        // REVU unecessary. You already has it as Product product - 
         Product p = productDao.findProductById(id);
         return new ProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCounter(), getCategoriesListId(p.getCategories()));
     }
@@ -103,6 +106,7 @@ public class ProductService {
         }
 
         if(order == null) {
+        	// REVU magic constant. Create enum
             order = "product";
         }
 
@@ -135,6 +139,8 @@ public class ProductService {
 
     public List<ProductBuyRequest> buyProduct(ProductBuyRequest dto, String token) throws ServerException {
         Client client = userService.getClientByToken(token);
+        // REVU why new Product ? You must get Product by id
+        // also, why List ? You can buy only 1 product here
         List<Product> list = productDao.buyProduct(client, new Product(dto.getId(), dto.getName(), dto.getPrice(), 0, null), dto.getCount());
         List<ProductBuyRequest> out = new ArrayList<>();
         for(Product it : list) {

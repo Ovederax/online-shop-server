@@ -23,6 +23,8 @@ public class Administrator extends User{
     }
 
     public void updateEntity(String firstName, String lastName, String patronymic, String position, String password) {
+        // REVU do not set fields of parent class in this class
+    	// use super(...) or this(...)
         setFirstname(firstName);
         setLastname(lastName);
         setPatronymic(patronymic);

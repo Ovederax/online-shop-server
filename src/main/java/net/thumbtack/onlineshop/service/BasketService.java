@@ -30,12 +30,16 @@ public class BasketService {
         this.productDao = productDao;
     }
 
+    // REVU addProductToBasket
     public List<BasketResponse> addProductInBasket(ProductAddInBasketsRequest dto, String token) throws JsonProcessingException, ServerException {
         Client client = userService.getClientByToken(token);
+        // REVU it is better consider DTO as read-only object and do not modify it
+        // create local variable
         if(dto.getCount() == 0) {
             dto.setCount(1);
         }
         Product p = productDao.findProductById(dto.getId());
+        // REVU why do you update Product here ? You can check only.
         p.updateEntity(dto.getName(), dto.getPrice(), null);
         basketDao.addProductInBasket(client, p, dto.getCount());
         return getProductsInBasket(client);
@@ -48,6 +52,7 @@ public class BasketService {
 
     public List<BasketResponse> updateProductCount(BasketUpdateCountProductRequest dto, String token) throws ServerException, JsonProcessingException {
         Client client = userService.getClientByToken(token);
+        // REVU why new Product ? You must get Product by id
         basketDao.updateProductCount(new Product(dto.getName(), dto.getPrice(), dto.getCount(), null), client);
         return getProductsInBasket(client);
     }

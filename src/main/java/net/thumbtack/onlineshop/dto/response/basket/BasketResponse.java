@@ -2,6 +2,8 @@ package net.thumbtack.onlineshop.dto.response.basket;
 
 import java.util.Objects;
 
+// REVU It is very difficult for me to understand that basket can give response :-)
+// rename
 public class BasketResponse {
     private int id;
     private String name;
