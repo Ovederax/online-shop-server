@@ -1,10 +1,12 @@
-package net.thumbtack.onlineshop.controllers;
+package net.thumbtack.onlineshop.utils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
 import net.thumbtack.onlineshop.dto.request.user.AdministratorRegisterRequest;
 import net.thumbtack.onlineshop.dto.request.user.ClientRegisterRequest;
+import net.thumbtack.onlineshop.dto.request.user.DepositMoneyRequest;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
@@ -22,10 +24,19 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import javax.servlet.http.Cookie;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -107,7 +118,7 @@ public class CommonUtils {
     }
 
     public Cookie registerTestClient(MockMvc mvc) throws Exception {
-        return registerClient(new Client("first", "last", null, "email", "address", "phone", "user", "pass"), mvc);
+        return registerClient(new Client("first", "last", null, "user@gmail.com", "address", "phone", "user", "pass"), mvc);
     }
 
     public Cookie registerClient(Client client, MockMvc mvc) throws Exception {
@@ -127,5 +138,47 @@ public class CommonUtils {
 
         assertEquals(respExpected, actual);
         return  cookie;
+    }
+
+    public void insertTestDataInBD(MockMvc mvc) throws Exception {
+        Cookie token = registerTestAdmin(mvc);
+
+        List<Category> categories = asList(
+            new Category("phone", null),
+            new Category("dress", null),
+            new Category("clock", null),
+            new Category("calculator", null)
+        );
+        List<Product> products  = asList(
+            new Product("Iphone X666", 66600, 10, singletonList(categories.get(0))),
+            new Product("MegaShorts", 700,100, singletonList(categories.get(1))),
+            new Product("TC12-90", 300,30, singletonList(categories.get(2))),
+            new Product("CALCULUS-92",100,50,singletonList(categories.get(3))
+        ));
+
+        for(Category it: categories) {
+            it.setId(addCategory(it, token, mvc));
+        }
+
+        for(Product it: products) {
+            addProduct(it, token, singletonList(it.getCategories().get(0).getId()), mvc);
+        }
+
+
+    }
+
+    public void addDepositMoney(int money, Cookie clientToken, MockMvc mvc) throws Exception {
+        DepositMoneyRequest req = new DepositMoneyRequest(String.valueOf(money));
+
+        ResultActions res = mvc.perform(post("/api/deposits")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(req))
+                .cookie(clientToken));
+
+        MvcResult mvcRes = res.andExpect(status().isOk()).andReturn();
+        String content = mvcRes.getResponse().getContentAsString();
+        ClientInfoResponse actual = mapper.readValue(content, ClientInfoResponse.class);
+
+        assertTrue(actual.getDeposit() >= money);
     }
 }

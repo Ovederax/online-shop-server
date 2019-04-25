@@ -82,17 +82,18 @@ CREATE TABLE baskets (
     UNIQUE KEY products_categories(userId, productId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
+
 CREATE TABLE purchases (
     id INT(11) NOT NULL AUTO_INCREMENT,
-    /* переосмыслю, когда дойду,
-     нужно рассмотреть систуацию с изменением уже купленных продуктов
-     возможно при совершении покупки будет создаватся копия product со своим id + здесь id на актуальную версию*/
-    productId INT(11) NOT NULL,
+    actualId INT(11) NOT NULL,
+    clientId INT(11) NOT NULL,
+    name VARCHAR(50) NOT NULL,
     buyCount INT(11) NOT NULL,
     buyPrice INT(11) NOT NULL,
 
     PRIMARY KEY (id),
-    FOREIGN KEY(productId) REFERENCES products(id)
+    FOREIGN KEY(actualId) REFERENCES products(id),
+    FOREIGN KEY(clientId) REFERENCES clients(userId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 CREATE TABLE deposits (

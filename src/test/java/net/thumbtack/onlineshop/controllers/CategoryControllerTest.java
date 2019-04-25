@@ -2,17 +2,15 @@ package net.thumbtack.onlineshop.controllers;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryEditRequest;
-import net.thumbtack.onlineshop.dto.request.user.AdministratorRegisterRequest;
 import net.thumbtack.onlineshop.dto.response.ErrorContent;
 import net.thumbtack.onlineshop.dto.response.ErrorResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryEditResponse;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryGetResponse;
-import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
 import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
+import net.thumbtack.onlineshop.utils.CommonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,10 +25,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;

@@ -11,4 +11,6 @@ public interface CategoryDao {
     void deleteCategory (int id);
     List<Category> getParentsCategories();
     Category findCategoryById(int id);
+
+    List<Category> findCategoriesById(List<Integer> categories);
 }

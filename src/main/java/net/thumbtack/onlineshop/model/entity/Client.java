@@ -1,28 +1,14 @@
 package net.thumbtack.onlineshop.model.entity;
 
+import java.util.List;
 import java.util.Objects;
-
-//Для того, чтобы купить товар, зарегистрированный клиент должен
-//сначала положить некоторую сумму денег (рублей) на свой счет.
-//Счет создается для каждого клиента автоматически при регистрации.
-//Зарегистрированный клиент может купить любой товар в любом
-//количестве, если он имеется в наличии. Если клиент принимает
-//решение купить товар, то он условно оплачивает его.
-//Оплата товара производится только со счета клиента.
-//Альтернативно, клиент может добавить товар в свою Корзину клиента.
-//В дальнейшем он может удалить этот товар из корзины или купить
-//все или некоторые товары, находящиеся в Корзине.
-//Товары, находящиеся в Корзине, не считаются купленными
-//клиентом, поэтому не исключена ситуация, что товар имелся в
-//наличии в момент его добавления в Корзину, а в момент покупки
-//этого товара уже нет либо в нужном количестве, либо вообще.
-
 
 public class Client extends User{
     private String email;
     private String address;
     private String phone;
     private Deposit deposit;
+    private List<Purchase> purchases;
 
     public Client(String firstname, String lastname, String patronymic, String email, String address, String phone, String login, String password) {
         super(0, firstname, lastname, patronymic, login, password);
@@ -79,6 +65,13 @@ public class Client extends User{
         this.deposit = deposit;
     }
 
+    public List<Purchase> getPurchases() {
+        return purchases;
+    }
+
+    public void setPurchases(List<Purchase> purchases) {
+        this.purchases = purchases;
+    }
 
     @Override
     public boolean equals(Object o) {

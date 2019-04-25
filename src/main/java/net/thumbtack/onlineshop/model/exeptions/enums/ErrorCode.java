@@ -14,17 +14,24 @@ public enum ErrorCode {
     USER_IS_INACTIVE    ("token",   "User is inactive now, no need logout account"),
     USER_IS_ACTIVE      ("token",   "User is active now, no need login account"),
     USER_IS_NOT_ADMIN   ("token",   "User is not administrator"),
-    PASSWORD_IS_NOT_CORRECT_DB  ("password", "Your input password is invalid"),
     UUID_NOT_FOUND              ("token",    "Your uuid is not found"),
     EDIT_NOT_YOUR_TYPE_USER     ("token",    "You edit not your type of user"),
     YOU_NO_HAVE_THIS_PRIVILEGES ("token",    "You no have this privileges"),
     USER_IS_NOT_CLIENT("token", "User is not client" ),
+    YOU_ARE_NOT_LOGIN("token", "You are not login"),
 
-    //-----------CATHEGORIES----------
     CATEGORY_NO_EXISTS("id",   "This category is no exist"),
     BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY("parentId", "You no can set subcategory into subcategory"),
     UPDATE_PRODUCT_SET_CATEGORIES_NO_SUPPORT("categories", "You no can set categories in product where update it"),
-    BAD_ORDER_FOR_GET_PROGUCT_LIST("order", "Bad order for get products list");
+    BAD_ORDER_FOR_GET_PROGUCT_LIST("order", "Bad order for get products list"),
+    BAD_UPDATE_PRODUCT_IN_BASKET("", "Bad update product in basket"),
+    NO_BUY_IF_PRODUCT_IS_CHANGE("field", "No make buy if product is changed"),
+    YOU_NEED_MORE_MONEY_TO_BUY("money", "You need more money to buy product"),
+    BUY_COUNT_PRODUCT_LESS_NEED_COUNT("count", "You no can buy product with this count"),
+    NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE("money", "You no can buy product if your money deposit is change"),
+    BAD_UPDATE_DEPOSIT_IT_IS_CHANGE("money", "Bad update deposit, deposit is change"),
+    PRODUCT_IS_DELETED("product", "Product is deleted"),
+    VALIDATE_ERROR("", "");
 
 
 
@@ -45,7 +52,15 @@ public enum ErrorCode {
         return field;
     }
 
+    public void setField(String field) {
+        this.field = field;
+    }
+
     public String getErrorCode() {
         return toString();
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

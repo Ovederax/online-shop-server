@@ -1,6 +1,7 @@
 package net.thumbtack.onlineshop.service;
 
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
+import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
 import net.thumbtack.onlineshop.dto.request.cathegory.CategoryEditRequest;
 import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
@@ -16,52 +17,45 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class CategoryService {
+public class CategoryService extends ServiceBase{
+    private UserDao userDao;
     private CategoryDao categoryDao;
-    private UserService userService;
 
     @Autowired
-    public CategoryService(CategoryDao categoryDao, UserService userService) {
+    public CategoryService(UserDao userDao, CategoryDao categoryDao) {
+        this.userDao = userDao;
         this.categoryDao = categoryDao;
-        this.userService = userService;
     }
 
     public CategoryAddResponse addCategory(CategoryAddRequest dto, String token) throws ServerException {
-    	// REVU better do not call one service from another service
-    	// make this method common for all services
-    	// e.g. create class ServiceBase and make all services descendants of ServiceBase
-    	// and move this method to ServiceBase as protected
-        userService.checkAdministratorPrivileges(token);
+        checkAdministratorPrivileges(userDao, token);
         Category parent = null;
         if(dto.getParentId() != null) {
             parent = categoryDao.findCategoryById(dto.getParentId());
         }
-        // REVU do not use  one-letter names
-        Category c = new Category(dto.getName(), parent);
-        categoryDao.addCategory(c);
-        // REVU p and parent are the same
-        Category p = c.getParent();
-        if(p!=null) {
-            return new CategoryAddResponse(c.getId(), c.getName(), p.getId(), p.getName());
+        Category category = new Category(dto.getName(), parent);
+        categoryDao.addCategory(category);
+        if(parent != null) {
+            return new CategoryAddResponse(category.getId(), category.getName(), parent.getId(), parent.getName());
         }
-        return new CategoryAddResponse(c.getId(), c.getName(), 0, null);
+        return new CategoryAddResponse(category.getId(), category.getName(), 0, null);
     }
 
     public CategoryGetResponse getCategory(int id, String token) throws ServerException {
-        userService.checkAdministratorPrivileges(token);
-        Category c = categoryDao.getCategory(id);
-        if(c == null) {
+        checkAdministratorPrivileges(userDao, token);
+        Category category = categoryDao.getCategory(id);
+        if(category == null) {
             throw new ServerException(ErrorCode.CATEGORY_NO_EXISTS);
         }
-        Category p = c.getParent();
-        if(p!=null) {
-            return new CategoryGetResponse(c.getId(), c.getName(), p.getId(), p.getName());
+        Category parent = category.getParent();
+        if(parent!=null) {
+            return new CategoryGetResponse(category.getId(), category.getName(), parent.getId(), parent.getName());
         }
-        return new CategoryGetResponse(c.getId(), c.getName(), 0, null);
+        return new CategoryGetResponse(category.getId(), category.getName(), 0, null);
     }
 
     public CategoryEditResponse updateCategory(int id, CategoryEditRequest dto, String token) throws ServerException {
-        userService.checkAdministratorPrivileges(token);
+        checkAdministratorPrivileges(userDao, token);
         if(dto.getParentId() != null) {
             Category c = categoryDao.getCategory(id);
             if (c.getParent() != null) {
@@ -69,24 +63,24 @@ public class CategoryService {
             }
         }
         categoryDao.updateCategory(id, dto.getName(), dto.getParentId());
-        Category c = categoryDao.getCategory(id);
-        if(c == null) {
+        Category category = categoryDao.getCategory(id);
+        if(category == null) {
             throw new ServerException(ErrorCode.CATEGORY_NO_EXISTS);
         }
-        Category p = c.getParent();
-        if(p!=null) {
-            return new CategoryEditResponse(c.getId(), c.getName(), p.getId(), p.getName());
+        Category parent = category.getParent();
+        if(parent!=null) {
+            return new CategoryEditResponse(category.getId(), category.getName(), parent.getId(), parent.getName());
         }
-        return new CategoryEditResponse(c.getId(), c.getName(), 0, null);
+        return new CategoryEditResponse(category.getId(), category.getName(), 0, null);
     }
 
     public void deleteCategory(int id, String token) throws ServerException {
-        userService.checkAdministratorPrivileges(token);
+        checkAdministratorPrivileges(userDao, token);
         categoryDao.deleteCategory(id);
     }
 
     public List<CategoryGetResponse> getCategories(String token) throws ServerException {
-        userService.checkAdministratorPrivileges(token);
+        checkAdministratorPrivileges(userDao, token);
         List<Category> categories = categoryDao.getParentsCategories();
         List<CategoryGetResponse> out = new ArrayList<CategoryGetResponse>();
 

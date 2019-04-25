@@ -8,7 +8,7 @@
     <properties resource='mysql.jdbc.properties'/>
 
     <settings>
-        <!-- instead of setting here, it is possible to set Configuration properties after creating SqlSessionFactory  -->
+        <!-- instead of setting here, it is possible to set net.thumbtack.onlineshop.Configuration properties after creating SqlSessionFactory  -->
         <setting name="aggressiveLazyLoading" value="false"/>
     </settings>
 

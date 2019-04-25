@@ -64,8 +64,8 @@ public class UserControllerTest {
 
     @Test
     public void registerClientTest() throws Exception {
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
@@ -84,8 +84,8 @@ public class UserControllerTest {
     @Test
     public void logoutAndLoginClientTest() throws Exception {
         // register + login + getinfo
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
@@ -140,8 +140,8 @@ public class UserControllerTest {
         assertEquals(0, list.size());
 
         //CLIENT REGISTER
-        ClientRegisterRequest clientRegisterRequest = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
-        ClientInfoResponse clientInfoResponse = new ClientInfoResponse(0, "cName", "cLast", null, "email", "address", "phone", 0);
+        ClientRegisterRequest clientRegisterRequest = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
+        ClientInfoResponse clientInfoResponse = new ClientInfoResponse(0, "cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
 
         res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(clientRegisterRequest)));
         res.andExpect(status().isOk())
@@ -179,7 +179,7 @@ public class UserControllerTest {
 
         assertEquals(respExpected, actual);
 
-        AdministratorEditRequest admEditReq = new AdministratorEditRequest("adm", "adm", "patron", "pos2", "1234", "1");
+        AdministratorEditRequest admEditReq = new AdministratorEditRequest("adm", "adm", "patron", "pos2", "1234", "19999");
         respExpected = new AdministratorInfoResponse(0,"adm", "adm", "patron", "pos2");
         res = mvc.perform(put("/api/admins").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
@@ -191,8 +191,8 @@ public class UserControllerTest {
 
     @Test
     public void updateClientProfileTest() throws Exception {
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "email", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "email", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
@@ -207,8 +207,8 @@ public class UserControllerTest {
 
         assertEquals(respExpected, actual);
 
-        ClientEditRequest admEditReq = new ClientEditRequest("1", "2", "3", "email2", "address2", "phone2", "pass", "newpass");
-        respExpected = new ClientInfoResponse(0,"1", "2", "3", "email2", "address2", "phone2", 0);
+        ClientEditRequest admEditReq = new ClientEditRequest("1", "2", "3", "user2@gmail.com", "address2", "phone2", "pass", "newpass");
+        respExpected = new ClientInfoResponse(0,"1", "2", "3", "user2@gmail.com", "address2", "phone2", 0);
         res = mvc.perform(put("/api/clients").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
         actual = mapper.readValue(mvcRes.getResponse().getContentAsString(), ClientInfoResponse.class);

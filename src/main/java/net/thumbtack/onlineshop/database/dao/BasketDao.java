@@ -1,14 +1,19 @@
 package net.thumbtack.onlineshop.database.dao;
 
+import net.thumbtack.onlineshop.model.entity.BasketItem;
 import net.thumbtack.onlineshop.model.entity.Client;
-import net.thumbtack.onlineshop.model.entity.Product;
 
 import java.util.List;
 
 public interface BasketDao {
-	// REVU addProductToBasket
-	void addProductInBasket(Client client, Product product, int count);
-    List<Product> getProductsInBasket();
-    void deleteProductFromBasket(int id, Client client);
-    void updateProductCount(Product product, Client client);
+	int addProductToBasket(Client client, BasketItem item);
+    List<BasketItem> getProductsInBasket(Client client);
+    void updateProductCount(BasketItem product);
+
+    BasketItem getProductInBasket(int id);
+
+    void deleteItemFromBasketById(int id);
+    void deleteItemFromBasketByProductId(int id);
+
+    List<BasketItem> getProductInBasketInRange(Client client, List<Integer> productsId);
 }

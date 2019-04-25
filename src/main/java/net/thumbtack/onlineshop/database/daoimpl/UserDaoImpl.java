@@ -107,13 +107,14 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public void reloadMoneyDeposit(Client client) {
+    public void reloadMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException {
         LOGGER.debug("UserDAO reloadMoneyDeposit");
-        int editCount;
         try(SqlSession sqlSession = getSession()) {
             try {
-                getUserMapper(sqlSession).reloadMoneyDeposit(client);
-            } catch (RuntimeException ex) {
+                if(getUserMapper(sqlSession).updateMoneyDeposit(client, newMoneyDeposit) != 1) {
+                    throw new ServerException(ErrorCode.BAD_UPDATE_DEPOSIT_IT_IS_CHANGE);
+                }
+            } catch (RuntimeException | ServerException ex) {
                 LOGGER.info("Can't reloadMoneyDeposit DB ", ex);
                 sqlSession.rollback();
                 throw ex;

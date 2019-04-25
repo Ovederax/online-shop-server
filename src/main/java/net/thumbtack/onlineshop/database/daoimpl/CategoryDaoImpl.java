@@ -7,7 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 @Component
 public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
@@ -102,6 +104,26 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
                 return getCategoryMapper(sqlSession).findCategoryById(id);
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't findCategoryById in DB ", ex);
+                throw ex;
+            }
+        }
+    }
+
+    @Override
+    public List<Category> findCategoriesById(List<Integer> categories) {
+        LOGGER.debug("CategoryDao findCategoriesById");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                if(categories.size() == 0) {
+                    return new ArrayList<>();
+                }
+                StringJoiner joiner = new StringJoiner(",");
+                for(Integer it: categories) {
+                    joiner.add(it.toString());
+                }
+                return getCategoryMapper(sqlSession).findCategoriesById(joiner.toString());
+            } catch (RuntimeException ex) {
+                LOGGER.info("Can't findCategoriesById in DB ", ex);
                 throw ex;
             }
         }

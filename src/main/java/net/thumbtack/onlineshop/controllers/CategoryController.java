@@ -12,6 +12,7 @@ import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -20,7 +21,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-public class CategoryController {
+public class CategoryController extends CommonController{
     private CategoryService categoryService;
 
     @Autowired
@@ -29,31 +30,39 @@ public class CategoryController {
     }
     @PostMapping(path="/api/categories", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public CategoryAddResponse addCategory(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody CategoryAddRequest dto, HttpServletResponse response) throws JsonProcessingException, ServerException {
+    public CategoryAddResponse addCategory(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
+                                           @Valid @RequestBody CategoryAddRequest dto, BindingResult result, HttpServletResponse response) throws ServerException {
+        verifyValidateServerException(result, cookie);
         response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.addCategory(dto, cookie.getValue());
     }
     @GetMapping(path="/api/categories/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public CategoryGetResponse getCategory(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @PathVariable int id, HttpServletResponse response) throws JsonProcessingException, ServerException {
+    public CategoryGetResponse getCategory(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
+                                           @PathVariable int id, HttpServletResponse response) throws ServerException {
+        verifyCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.getCategory(id, cookie.getValue());
     }
     @PutMapping(path="/api/categories/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public CategoryEditResponse updateCategory(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
-                                               @PathVariable int id, @Valid @RequestBody CategoryEditRequest dto, HttpServletResponse response) throws JsonProcessingException, ServerException {
+    public CategoryEditResponse updateCategory(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
+                                               @PathVariable int id, @Valid @RequestBody CategoryEditRequest dto, BindingResult result, HttpServletResponse response) throws ServerException {
+        verifyValidateServerException(result, cookie);
         response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.updateCategory(id, dto, cookie.getValue());
     }
     @DeleteMapping(path="/api/categories/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public SuccessEmptyResponse deleteCategory(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
+    public SuccessEmptyResponse deleteCategory(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
                                                @PathVariable int id, HttpServletResponse response) throws ServerException {
+        verifyCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
         categoryService.deleteCategory(id, cookie.getValue());
         return new SuccessEmptyResponse();
     }
 
     @GetMapping(path="/api/categories", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<CategoryGetResponse> getCategories(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) throws JsonProcessingException, ServerException {
+    public List<CategoryGetResponse> getCategories(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie,
+                                                   HttpServletResponse response) throws ServerException {
+        verifyCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.getCategories(cookie.getValue());
     }

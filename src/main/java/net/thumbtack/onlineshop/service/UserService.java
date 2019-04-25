@@ -10,14 +10,13 @@ import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.UUID;
 
 @Service
-public class UserService {
-    @Autowired private UserDao userDao;
-
+public class UserService extends ServiceBase {
+    @Autowired
+    private UserDao userDao;
     /** VALIDATION
     Логин может содержать только латинские и русские буквы и цифры и
     не может быть пустым.
@@ -38,22 +37,6 @@ public class UserService {
 
     Пароль является case-sensitive.*/
 
-    public void checkAdministratorPrivileges(String token) throws ServerException {
-        User user = userDao.findUserByToken(token);
-        Administrator ad = userDao.findAdministratorById(user.getId());
-        if(ad == null) {
-            throw new ServerException(ErrorCode.YOU_NO_HAVE_THIS_PRIVILEGES);
-        }
-    }
-    public Client getClientByToken(String token) throws ServerException {
-        User user = userDao.findUserByToken(token);
-        Client c = userDao.findClientById(user.getId());
-        if(c == null) {
-            throw new ServerException(ErrorCode.USER_IS_NOT_CLIENT);
-        }
-        return c;
-    }
-
     public void registerAdministrator(AdministratorRegisterRequest r) throws ServerException {
         Administrator ad = new Administrator(r.getFirstName(), r.getLastName(), r.getPatronymic(), r.getPosition(), r.getLogin(), r.getPassword());
         userDao.registerAdministrator(ad);
@@ -71,8 +54,6 @@ public class UserService {
 
     /** @return token in uuid format */
     public UserLoginResponse login(UserLoginRequest r) throws ServerException {
-    	// REVU create variable where you need in it, i.e. before  userDao.login(user, token);
-        UUID token = UUID.randomUUID();
         User user = userDao.findUserByLogin(r.getLogin());
         if(user == null) {
             throw new ServerException(ErrorCode.LOGIN_NOT_FOUND_DB);
@@ -80,6 +61,7 @@ public class UserService {
         if(!user.getPassword().equals(r.getPassword())) {
             throw new ServerException(ErrorCode.BAD_PASSWORD);
         }
+        UUID token = UUID.randomUUID();
         userDao.login(user, token);
         return new UserLoginResponse(token.toString(), getUserInfoByUserId(user.getId()));
     }
@@ -104,7 +86,7 @@ public class UserService {
     }
 
     public List<ClientInfo> getClientsInfo(String token) throws ServerException {
-        checkAdministratorPrivileges(token);
+        checkAdministratorPrivileges(userDao, token);
         return userDao.getClientsInfo();
     }
 
@@ -125,7 +107,7 @@ public class UserService {
     }
 
     public ClientInfoResponse editClient(ClientEditRequest r, String token) throws ServerException {
-        Client c = getClientByToken(token);
+        Client c = getClientByToken(userDao, token);
         if(!c.getPassword().equals(r.getOldPassword())) {
             throw new ServerException(ErrorCode.BAD_PASSWORD);
         }
@@ -135,14 +117,14 @@ public class UserService {
     }
 
     public UserInfoResponse addMoneyDeposit(DepositMoneyRequest dto, String token) throws ServerException {
-        Client client = getClientByToken(token);
-        client.getDeposit().addMoney( Integer.parseInt(dto.getDeposit()) );
-        userDao.reloadMoneyDeposit(client);
+        Client client = getClientByToken(userDao, token);
+        int newMoneyDeposit = client.getDeposit().getMoney() + Integer.parseInt(dto.getDeposit());
+        userDao.reloadMoneyDeposit(client, newMoneyDeposit);
         return getUserInfo(token);
     }
 
     public UserInfoResponse getMoneyDeposit(String token) throws ServerException {
-        Client c = getClientByToken(token);
+        Client c = getClientByToken(userDao, token);
         return getUserInfo(token);
     }
 }

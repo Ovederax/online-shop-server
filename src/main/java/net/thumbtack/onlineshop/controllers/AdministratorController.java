@@ -1,21 +1,19 @@
 package net.thumbtack.onlineshop.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.thumbtack.onlineshop.dto.response.AvailableSettingResponse;
-import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.service.AdministratorService;
-import net.thumbtack.onlineshop.service.BasketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class AdministratorController {
+public class AdministratorController extends CommonController {
     private AdministratorService service;
 
     @Autowired
@@ -42,7 +40,7 @@ public class AdministratorController {
 //    }
 
     @GetMapping(path="/api/settings", produces = MediaType.APPLICATION_JSON_VALUE )
-    public AvailableSettingResponse getSettings(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
+    public AvailableSettingResponse getSettings(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_OK);
         return service.getSettings(cookie.getValue());
     }

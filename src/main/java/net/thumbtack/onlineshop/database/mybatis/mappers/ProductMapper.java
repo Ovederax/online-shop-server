@@ -1,7 +1,9 @@
 package net.thumbtack.onlineshop.database.mybatis.mappers;
 
 import net.thumbtack.onlineshop.model.entity.Category;
+import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
+import net.thumbtack.onlineshop.model.entity.Purchase;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
 
@@ -128,4 +130,16 @@ public interface ProductMapper {
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryIdOrderName", fetchType = FetchType.EAGER))
     })
     List<Category> getProductListOrderCategory(List<Integer> categoriesId);
+
+    @Insert("INSERT INTO purchases(actualId, clientId, name, buyCount, buyPrice)" +
+            " VALUES(#{purchase.actual.id}, #{client.id}, #{purchase.name}, #{purchase.buyCount}, #{purchase.buyPrice})")
+    @Options(useGeneratedKeys = true, keyProperty = "purchase.id")
+    int makePurchase(@Param("purchase") Purchase purchase, @Param("client") Client client);
+
+    @Update("UPDATE products SET counter=#{newCount} WHERE counter=#{product.counter}")
+    int updateProductCount(@Param("product") Product product, @Param("newCount") int newProductCount);
+
+    @Delete("DELETE FROM purchases")
+    void deleteAllPurchases();
+
 }

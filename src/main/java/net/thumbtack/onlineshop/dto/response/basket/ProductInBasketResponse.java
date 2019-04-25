@@ -1,23 +1,22 @@
-package net.thumbtack.onlineshop.dto.request.basket;
+package net.thumbtack.onlineshop.dto.response.basket;
 
 import java.util.Objects;
 
-// REVU AddProductToBasketsRequest
-public class ProductAddInBasketsRequest {
+public class ProductInBasketResponse {
     private int id;
     private String name;
     private int price;
-    private int count;   // необязателен
+    private int count;
 
 
-    public ProductAddInBasketsRequest(int id, String name, int price, int count) {
+    public ProductInBasketResponse() {
+    }
+
+    public ProductInBasketResponse(int id, String name, int price, int count) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.count = count;
-    }
-
-    public ProductAddInBasketsRequest() {
     }
 
     public int getId() {
@@ -56,7 +55,7 @@ public class ProductAddInBasketsRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ProductAddInBasketsRequest that = (ProductAddInBasketsRequest) o;
+        ProductInBasketResponse that = (ProductInBasketResponse) o;
         return id == that.id &&
                 price == that.price &&
                 count == that.count &&

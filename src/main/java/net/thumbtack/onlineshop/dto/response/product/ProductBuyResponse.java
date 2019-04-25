@@ -3,26 +3,29 @@ package net.thumbtack.onlineshop.dto.response.product;
 import java.util.Objects;
 
 public class ProductBuyResponse {
-    private String id;
+    private int id;
     private String name;
-    private String price;
-    private String count;
+    private int price;
+    private int count;
 
-    public ProductBuyResponse(String id, String name, String price, String count) {
+
+
+    public ProductBuyResponse() {
+    }
+
+    public ProductBuyResponse(int id, String name, int price, int count) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.count = count;
     }
 
-    public ProductBuyResponse() {
-    }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -34,19 +37,19 @@ public class ProductBuyResponse {
         this.name = name;
     }
 
-    public String getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 
-    public String getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(String count) {
+    public void setCount(int count) {
         this.count = count;
     }
 
@@ -55,10 +58,10 @@ public class ProductBuyResponse {
         if (this == o) return true;
         if (!(o instanceof ProductBuyResponse)) return false;
         ProductBuyResponse that = (ProductBuyResponse) o;
-        return Objects.equals(getId(), that.getId()) &&
-                Objects.equals(getName(), that.getName()) &&
-                Objects.equals(getPrice(), that.getPrice()) &&
-                Objects.equals(getCount(), that.getCount());
+        return getId() == that.getId() &&
+                getPrice() == that.getPrice() &&
+                getCount() == that.getCount() &&
+                Objects.equals(getName(), that.getName());
     }
 
     @Override

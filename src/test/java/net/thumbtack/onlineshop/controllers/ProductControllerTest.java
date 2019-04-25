@@ -5,6 +5,7 @@ import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
 import net.thumbtack.onlineshop.dto.request.product.ProductEditRequest;
 import net.thumbtack.onlineshop.dto.response.product.ProductGetResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
+import net.thumbtack.onlineshop.utils.CommonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

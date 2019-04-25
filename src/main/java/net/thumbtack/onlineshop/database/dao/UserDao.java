@@ -3,7 +3,6 @@ package net.thumbtack.onlineshop.database.dao;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Client;
-import net.thumbtack.onlineshop.model.entity.Product;
 import net.thumbtack.onlineshop.model.entity.User;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 
@@ -32,7 +31,7 @@ public interface UserDao {
     User findUserByLogin(String login);
     User findUserByToken(String token) throws ServerException;
 
-    void reloadMoneyDeposit(Client client);
+    void reloadMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException;
 
     void clearData();
 }

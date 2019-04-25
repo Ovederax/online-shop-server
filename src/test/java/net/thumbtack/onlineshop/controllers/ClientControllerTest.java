@@ -1,10 +1,17 @@
 package net.thumbtack.onlineshop.controllers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
+import net.thumbtack.onlineshop.dto.request.basket.AddProductToBasketsRequest;
+import net.thumbtack.onlineshop.dto.request.product.ProductBuyRequest;
 import net.thumbtack.onlineshop.dto.request.user.DepositMoneyRequest;
+import net.thumbtack.onlineshop.dto.response.basket.ProductInBasketResponse;
+import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
+import net.thumbtack.onlineshop.dto.response.product.ProductGetResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
+import net.thumbtack.onlineshop.model.entity.Product;
+import net.thumbtack.onlineshop.utils.CommonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,7 +27,8 @@ import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import static org.junit.Assert.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -47,7 +55,7 @@ public class ClientControllerTest {
     public void addMoneyDeposit() throws Exception {
         Cookie token = utils.registerTestClient(mvc);
         DepositMoneyRequest req = new DepositMoneyRequest("123");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"first", "last", null, "email", "address", "phone", 123);
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"first", "last", null, "user@gmail.com", "address", "phone", 123);
 
         ResultActions res = mvc.perform(post("/api/deposits")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -73,6 +81,47 @@ public class ClientControllerTest {
     }
 
     @Test
-    public void buyProduct() {
+    public void buyProduct() throws Exception {
+        Cookie adminToken   = utils.registerTestAdmin(mvc);
+        Cookie clientToken  = utils.registerTestClient(mvc);
+
+        utils.addDepositMoney(100, clientToken, mvc);
+
+        int catId = utils.addTestCategory(adminToken, mvc);
+        List<Integer> categoriesList = Collections.singletonList(catId);
+        Product product = new Product("name1", 10, 20, null);
+        int productId = (utils.addProduct(product,  adminToken, categoriesList, mvc));
+
+        ProductBuyRequest req = new ProductBuyRequest(productId, product.getName(), product.getPrice(), null);
+        ProductBuyResponse respExpected = new ProductBuyResponse( 0, product.getName(), product.getPrice(), 1);
+
+        ResultActions res = mvc.perform(post("/api/purchases")
+                .cookie(clientToken)
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(mapper.writeValueAsString(req)));
+        res.andExpect(status().isOk());
+        MvcResult mvcRes = res.andReturn();
+        String content = mvcRes.getResponse().getContentAsString();
+
+        ProductBuyResponse actual = mapper.readValue(content, ProductBuyResponse.class);
+        respExpected.setId(actual.getId());
+
+        assertEquals(respExpected, actual);
+
+        //-------------CHECK DEPOSIT-------------------------
+        res = mvc.perform(get("/api/deposits")
+                .cookie(clientToken));
+        mvcRes = res.andExpect(status().isOk()).andReturn();
+        assertEquals(90,  mapper.readValue(mvcRes.getResponse().getContentAsString(), ClientInfoResponse.class).getDeposit());
+
+        //-------------CHECK PRODUCT COUNT--------------------
+        res = mvc.perform(get("/api/products/"+productId)
+                .cookie(clientToken));
+
+        mvcRes = res.andExpect(status().isOk()).andReturn();
+        content = mvcRes.getResponse().getContentAsString();
+
+        assertEquals(product.getCounter()-1, mapper.readValue(content, ProductGetResponse.class).getCount());
     }
+
 }

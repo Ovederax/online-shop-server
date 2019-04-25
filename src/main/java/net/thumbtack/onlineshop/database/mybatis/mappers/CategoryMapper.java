@@ -62,4 +62,6 @@ public interface CategoryMapper {
     @Delete("DELETE FROM categories")
     void deleteAllCategory();
 
+    @Select("SELECT * FROM categories WHERE id IN (#{categories})")
+    List<Category> findCategoriesById(String categories);
 }

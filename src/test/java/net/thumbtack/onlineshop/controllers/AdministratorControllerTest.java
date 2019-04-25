@@ -12,5 +12,6 @@ public class AdministratorControllerTest {
 
     @Test
     public void clearDataBase() {
+
     }
 }

@@ -98,8 +98,13 @@ public interface UserMapper {
     @Delete("DELETE FROM logged_users")
     void deleteAllLoginRecords();
 
-    @Update("UPDATE deposits SET money=#{deposit.money} WHERE clientId=#{id}")
-    void reloadMoneyDeposit(Client client);
+//    Это небезопасно
+//    @Update("UPDATE deposits SET money=#{deposit.money} WHERE clientId=#{id}")
+//    void reloadMoneyDeposit(Client client);
+
+    // А это безопасно
+    @Update("UPDATE deposits SET money=#{newDeposit} WHERE clientId=#{client.id} AND money=#{client.deposit.money}")
+    int updateMoneyDeposit(@Param("client") Client client, @Param("newDeposit") int newDeposit);
 
 
     //-------------------------------------------------------------------------------------

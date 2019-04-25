@@ -1,12 +1,7 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.CommonDao;
-import net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper;
-import net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper;
-import net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper;
-import net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper;
-import net.thumbtack.onlineshop.model.entity.Category;
-import net.thumbtack.onlineshop.model.entity.Product;
+import net.thumbtack.onlineshop.database.mybatis.mappers.*;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +20,10 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
                 CategoryMapper categoryMapper = getCategoryMapper(sqlSession);
                 ProductMapper productMapper = getProductMapper(sqlSession);
                 DepositMapper depositMapper = getDepositMapper(sqlSession);
+                BasketMapper basketMapper = getBasketMapper(sqlSession);
+
+                productMapper.deleteAllPurchases();
+                basketMapper.deleteAllBasket();
 
                 depositMapper.clearAllDeposits();
                 userMapper.deleteAllClients();

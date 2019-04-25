@@ -1,24 +1,34 @@
-package net.thumbtack.onlineshop.dto.response.basket;
+package net.thumbtack.onlineshop.dto.request.basket;
 
+import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Objects;
 
-// REVU It is very difficult for me to understand that basket can give response :-)
-// rename
-public class BasketResponse {
+
+public class AddProductToBasketsRequest {
+    @Min(value = 1, message = ValidationError.ID_MUST_GREAT_ZERO)
     private int id;
+
+    @NotNull(message = ValidationError.PRODUCT_NAME_CANNOT_BE_NULL)
     private String name;
+
+    @Min(value = 0, message = ValidationError.PRODUCT_PRICE_MUST_GREAT_ZERO)
     private int price;
-    private int count;
 
+    @PositiveOrZero(message = ValidationError.PRODUCT_COUNT_CANNOT_BE_LESS_ZERO)
+    private int count;   // необязателен
 
-    public BasketResponse(int id, String name, int price, int count) {
-        this.id = id;
+    public AddProductToBasketsRequest(int productId, String name, int price, int count) {
+        this.id = productId;
         this.name = name;
         this.price = price;
         this.count = count;
     }
 
-    public BasketResponse() {
+    public AddProductToBasketsRequest() {
     }
 
     public int getId() {
@@ -57,7 +67,7 @@ public class BasketResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BasketResponse that = (BasketResponse) o;
+        AddProductToBasketsRequest that = (AddProductToBasketsRequest) o;
         return id == that.id &&
                 price == that.price &&
                 count == that.count &&

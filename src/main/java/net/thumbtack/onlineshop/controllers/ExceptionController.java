@@ -19,15 +19,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 @ControllerAdvice
-public class ExceptionController  extends ResponseEntityExceptionHandler {
-    /*@ExceptionHandler({ServerException.class})
-    public ModelAndView handleServerException(HttpServletRequest req, ServerException ex) {
-        ModelAndView mav = new ModelAndView();
-        mav.addObject("exception", ex);
-        mav.addObject("url", req.getRequestURL());
-        mav.setViewName("error");
-        return mav;
-    }*/
+public class ExceptionController extends ResponseEntityExceptionHandler {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ServerException.class)

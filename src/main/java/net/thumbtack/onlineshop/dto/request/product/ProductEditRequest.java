@@ -1,11 +1,23 @@
 package net.thumbtack.onlineshop.dto.request.product;
 
+import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 public class ProductEditRequest {
+    @NotNull(message = ValidationError.PRODUCT_NAME_CANNOT_BE_NULL)
     private String name;
+
+    @Positive(message = ValidationError.PRODUCT_PRICE_MUST_GREAT_ZERO)
     private Integer price;
+
+    @PositiveOrZero(message = ValidationError.PRODUCT_COUNT_CANNOT_BE_LESS_ZERO)
     private Integer count;
+
     private List<Integer> categories;
 
 
