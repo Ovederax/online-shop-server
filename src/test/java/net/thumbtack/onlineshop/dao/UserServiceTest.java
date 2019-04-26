@@ -10,6 +10,7 @@ import org.junit.Test;
 
 //@RunWith(SpringRunner.class)
 //@SpringBootTest
+// REVU dao package but UserServiceTest ?
 public class UserServiceTest {
     private UserService userService;
 

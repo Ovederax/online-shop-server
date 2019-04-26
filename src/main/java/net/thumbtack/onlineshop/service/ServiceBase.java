@@ -12,6 +12,7 @@ abstract class ServiceBase {
 
     void checkAdministratorPrivileges(UserDao userDao, String token) throws ServerException {
         User user = userDao.findUserByToken(token);
+        // REVU Administrator administrator or Administrator admin; 
         Administrator ad = userDao.findAdministratorById(user.getId());
         if(ad == null) {
             throw new ServerException(ErrorCode.YOU_NO_HAVE_THIS_PRIVILEGES);
@@ -20,6 +21,7 @@ abstract class ServiceBase {
 
     Client getClientByToken(UserDao userDao, String token) throws ServerException {
         User user = userDao.findUserByToken(token);
+        // REVU see above
         Client c = userDao.findClientById(user.getId());
         if(c == null) {
             throw new ServerException(ErrorCode.USER_IS_NOT_CLIENT);

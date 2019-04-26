@@ -84,7 +84,10 @@ public class ProductService extends ServiceBase{
     }
 
     public GetProductResponse getProduct(int id, String token) throws ServerException {
-        User u = userDao.findUserByToken(token); // check user exist
+        // REVU do not use one-letter names
+    	// User user;
+    	// Product product;
+    	User u = userDao.findUserByToken(token); // check user exist
         Product p = productDao.findProductById(id);
         return new GetProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCounter(), getCategoriesListNames(p));
     }
@@ -166,6 +169,7 @@ public class ProductService extends ServiceBase{
         if(client.getDeposit().getMoney() < totalCost) {
             throw new ServerException(ErrorCode.YOU_NEED_MORE_MONEY_TO_BUY);
         }
+        // REVU create method getMobey in Client and client.getMoney() - totalCost;
         int newMoneyDeposit = client.getDeposit().getMoney() - totalCost;
         int newProductCount = product.getCounter() - count;
         checkProductParameters(product, dto.getName(), dto.getPrice(), count);

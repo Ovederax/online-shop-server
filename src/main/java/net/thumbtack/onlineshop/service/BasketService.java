@@ -132,11 +132,13 @@ public class BasketService extends ServiceBase{
             try {
                 int newDeposit = client.getDeposit().getMoney() - it.getBuyCount()*it.getBuyPrice();
                 int newCount = product.getCounter() - it.getBuyCount();
+                // REVU better do both operations in transaction
+                // i.e in 1 dao method
                 productDao.buyProduct(it, client, newDeposit, newCount);
                 basketDao.deleteItemFromBasketByProductId(it.getActual().getId());
                 successList.add(new ProductBuyResponse(product.getId(), product.getName(), product.getPrice(), it.getBuyCount()));
             } catch (ServerException ignored) {
-
+            	// REVU why ignored ?
             }
         }
         List<ProductInBasketResponse> remainingList = new ArrayList<>();

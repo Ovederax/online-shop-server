@@ -8,6 +8,7 @@ public enum ProductSortOrder {
     PRODUCT, CATEGORY;
 
     public static  ProductSortOrder fromString(String order) throws ServerException {
+    	// REVU valueOf
         switch (order) {
             case "product":
                 return ProductSortOrder.PRODUCT;

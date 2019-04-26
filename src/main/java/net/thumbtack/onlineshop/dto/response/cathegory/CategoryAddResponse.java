@@ -1,3 +1,4 @@
+// REVU net.thumbtack.onlineshop.dto.response.category;
 package net.thumbtack.onlineshop.dto.response.cathegory;
 
 import java.util.Objects;

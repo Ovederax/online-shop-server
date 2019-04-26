@@ -24,6 +24,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
             } catch (RuntimeException ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
                 sqlSession.rollback();
+                // REVU throw your own exception everywhere
                 throw ex;
             }
             sqlSession.commit();
@@ -97,6 +98,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     }
 
     @Override
+    // REVU getCategoryById
     public Category findCategoryById(int id) {
         LOGGER.debug("CategoryDao findCategoryById");
         try(SqlSession sqlSession = getSession()) {
@@ -110,6 +112,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     }
 
     @Override
+    // REVU the same
     public List<Category> findCategoriesById(List<Integer> categories) {
         LOGGER.debug("CategoryDao findCategoriesById");
         try(SqlSession sqlSession = getSession()) {
