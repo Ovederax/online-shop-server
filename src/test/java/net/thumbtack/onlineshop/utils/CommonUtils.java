@@ -1,35 +1,32 @@
 package net.thumbtack.onlineshop.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.thumbtack.onlineshop.dto.request.cathegory.CategoryAddRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
+import net.thumbtack.onlineshop.dto.request.category.AddCategoryRequest;
+import net.thumbtack.onlineshop.dto.request.product.AddProductRequest;
 import net.thumbtack.onlineshop.dto.request.user.AdministratorRegisterRequest;
 import net.thumbtack.onlineshop.dto.request.user.ClientRegisterRequest;
 import net.thumbtack.onlineshop.dto.request.user.DepositMoneyRequest;
-import net.thumbtack.onlineshop.dto.response.cathegory.CategoryAddResponse;
+import net.thumbtack.onlineshop.dto.response.category.AddCategoryResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.dto.response.user.AdministratorInfoResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
+import net.thumbtack.onlineshop.integration.ServerConstants;
 import net.thumbtack.onlineshop.model.entity.Administrator;
 import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.Cookie;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -45,11 +42,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Service
 public class CommonUtils {
     @Autowired private ObjectMapper mapper;
+    private static Client testClient = new Client("Иван", "Иванов", null, "user@gmail.com", "address", "8-913-666-88-99", "user", "pass");
+    private static Administrator testAdmin = new Administrator("Егор", "Иванов", null,"position","admin", "root");
 
+    //------------------MOCK MVC--------------------
     public Cookie registerTestAdmin(MockMvc mvc) throws Exception {
-        return registerAdmin(new Administrator(
-                "first", "last", null,
-                "position","admin", "root"), mvc);
+        return registerAdmin(testAdmin, mvc);
     }
 
     public int addTestCategory(Cookie token, MockMvc mvc) throws Exception {
@@ -85,8 +83,8 @@ public class CommonUtils {
         if(category.getParent() != null) {
             parentId = category.getParent().getId();
         }
-        CategoryAddRequest req = new CategoryAddRequest(category.getName(), parentId);
-        CategoryAddResponse respExpected = new CategoryAddResponse( 0, category.getName(), 0, null);
+        AddCategoryRequest req = new AddCategoryRequest(category.getName(), parentId);
+        AddCategoryResponse respExpected = new AddCategoryResponse( 0, category.getName(), 0, null);
 
         ResultActions res = mvc.perform(post("/api/categories")
                 .cookie(token)
@@ -95,14 +93,14 @@ public class CommonUtils {
         res.andExpect(status().isOk());
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
-        CategoryAddResponse actual = mapper.readValue(content, CategoryAddResponse.class);
+        AddCategoryResponse actual = mapper.readValue(content, AddCategoryResponse.class);
         respExpected.setId(actual.getId());
         assertEquals(respExpected, actual);
         return actual.getId();
     }
 
     public int addProduct(Product product, Cookie token, List<Integer> categories, MockMvc mvc) throws Exception {
-        ProductAddRequest req = new ProductAddRequest(product.getName(), product.getPrice(), product.getCounter(), categories);
+        AddProductRequest req = new AddProductRequest(product.getName(), product.getPrice(), product.getCounter(), categories);
 
         ResultActions res = mvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -118,13 +116,13 @@ public class CommonUtils {
     }
 
     public Cookie registerTestClient(MockMvc mvc) throws Exception {
-        return registerClient(new Client("first", "last", null, "user@gmail.com", "address", "phone", "user", "pass"), mvc);
+        return registerClient(testClient, mvc);
     }
 
     public Cookie registerClient(Client client, MockMvc mvc) throws Exception {
         ClientRegisterRequest req = new ClientRegisterRequest(client.getFirstname(), client.getLastname(),
                 client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone(), client.getLogin(), client.getPassword());
-        ClientInfoResponse respExpected = new ClientInfoResponse(0, client.getFirstname(), client.getLastname(), client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone(), 0);
+        ClientInfoResponse respExpected = new ClientInfoResponse(0, client.getFirstname(), client.getLastname(), client.getPatronymic(), client.getEmail(), client.getAddress(), convertPhoneFormat(client.getPhone()), 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
@@ -180,5 +178,9 @@ public class CommonUtils {
         ClientInfoResponse actual = mapper.readValue(content, ClientInfoResponse.class);
 
         assertTrue(actual.getDeposit() >= money);
+    }
+
+    private String convertPhoneFormat(String phone) {
+        return phone.replaceAll("-", "");
     }
 }

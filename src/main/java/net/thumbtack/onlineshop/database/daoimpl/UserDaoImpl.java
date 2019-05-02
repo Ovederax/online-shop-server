@@ -30,29 +30,29 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
             try {
                 getUserMapper(sqlSession).insertUser(admin);
                 getUserMapper(sqlSession).insertAdmin(admin);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't insertAdmin administrator in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.LOGIN_ALREADY_EXISTS);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public void registerClient(Client client) {
+    public void registerClient(Client client) throws ServerException {
         LOGGER.debug("UserDAO registerClient");
         try(SqlSession sqlSession = getSession()) {
+            UserMapper userMapper = getUserMapper(sqlSession);
+            DepositMapper depositMapper = getDepositMapper(sqlSession);
             try {
-                UserMapper userMapper = getUserMapper(sqlSession);
-                DepositMapper depositMapper = getDepositMapper(sqlSession);
                 userMapper.insertUser(client);
                 userMapper.insertClient(client);
                 depositMapper.insertDeposit(new Deposit(client.getId(), 0));
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't insertClient client in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.LOGIN_ALREADY_EXISTS);
             }
             sqlSession.commit();
         }
@@ -65,23 +65,23 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getUserMapper(sqlSession).login(user.getId(), token.toString());
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't user login in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.USER_IS_ACTIVE);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public List<Client> findAllClients() {
-        LOGGER.debug("UserDAO findAllClients");
+    public List<Client> getAllClients() {
+        LOGGER.debug("UserDAO getAllClients");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findAllClients();
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findAllClients in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getAllClients in DB ", ex);
                 throw ex;
             }
         }
@@ -97,12 +97,28 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.deleteAllAdministrators();
                 userMapper.deleteAllLoginRecords();
                 userMapper.deleteAllUsers();
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't clearData DB", ex);
                 throw ex;
             }
             sqlSession.commit();
+        }
+    }
+
+    @Override
+    public List<Client> getClientsById(List<Integer> clients) {
+        LOGGER.debug("UserDAO getClientsById");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                if(clients.size() == 0) {
+                    return new ArrayList<>();
+                }
+                return getUserMapper(sqlSession).getClientsById(clients);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getClientsById DB ", ex);
+                throw ex;
+            }
         }
     }
 
@@ -114,7 +130,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 if(getUserMapper(sqlSession).updateMoneyDeposit(client, newMoneyDeposit) != 1) {
                     throw new ServerException(ErrorCode.BAD_UPDATE_DEPOSIT_IT_IS_CHANGE);
                 }
-            } catch (RuntimeException | ServerException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't reloadMoneyDeposit DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -131,7 +147,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
             try {
                 UserMapper userMapper = getUserMapper(sqlSession);
                 editCount = userMapper.logout(token);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't user logout DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -153,7 +169,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                     outList.add(new ClientInfo(it.getId(), it.getFirstname(), it.getLastname(), it.getPatronymic(), it.getEmail(), it.getAddress(), it.getPhone()));
                 }
                 return outList;
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't getClientsInfo in DB ", ex);
                 throw ex;
             }
@@ -161,73 +177,47 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public Administrator findAdministratorByLogin(String login) {
-        LOGGER.debug("UserDAO findAdministratorByLogin");
-        try(SqlSession sqlSession = getSession()) {
-            try {
-                return getUserMapper(sqlSession).findAdministratorsByLogin(login);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findAdministratorByLogin in DB ", ex);
-                throw ex;
-            }
-        }
-    }
-
-    @Override
-    public Administrator findAdministratorById(int id) {
-        LOGGER.debug("UserDAO findAdministratorById");
+    public Administrator getAdministratorById(int id) {
+        LOGGER.debug("UserDAO getAdministratorById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findAdministratorsById(id);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findAdministratorById in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getAdministratorById in DB ", ex);
                 throw ex;
             }
         }
     }
 
     @Override
-    public User findUserByLogin(String login) {
-        LOGGER.debug("UserDAO findUserByLogin");
+    public User getUserByLogin(String login) {
+        LOGGER.debug("UserDAO getUserByLogin");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findUserByLogin(login);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findUserByLogin in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getUserByLogin in DB ", ex);
                 throw ex;
             }
         }
     }
 
     @Override
-    public Client findClientByLogin(String login) {
-        LOGGER.debug("UserDAO findClientByLogin");
-        try(SqlSession sqlSession = getSession()) {
-            try {
-                return getUserMapper(sqlSession).findClientByLogin(login);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findClientByLogin in DB ", ex);
-                throw ex;
-            }
-        }
-    }
-
-    @Override
-    public Client findClientById(int id) {
-        LOGGER.debug("UserDAO findClientById");
+    public Client getClientById(int id) {
+        LOGGER.debug("UserDAO getClientById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findClientById(id);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findClientById in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getClientById in DB ", ex);
                 throw ex;
             }
         }
     }
 
     @Override
-    public User findUserByToken(String token) throws ServerException {
-        LOGGER.debug("UserDAO findUserByToken");
+    public User getUserByToken(String token) throws ServerException {
+        LOGGER.debug("UserDAO getUserByToken");
         try(SqlSession sqlSession = getSession()) {
             try {
                 User user = getUserMapper(sqlSession).findUserByToken(token);
@@ -235,8 +225,8 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                     throw new ServerException(ErrorCode.UUID_NOT_FOUND);
                 }
                 return user;
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findUserByToken in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getUserByToken in DB ", ex);
                 throw ex;
             }
         }
@@ -251,7 +241,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.updateUser(admin);
                 userMapper.updateAdministrator(admin);
                 sqlSession.commit();
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't editAdministrator in DB ", ex);
                 throw ex;
@@ -268,7 +258,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.updateUser(client);
                 userMapper.updateClient(client);
                 sqlSession.commit();
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't editClient in DB ", ex);
                 throw ex;

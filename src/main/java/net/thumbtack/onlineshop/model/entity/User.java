@@ -9,6 +9,7 @@ public class User {
     private String patronymic;
     private String login;
     private String password;
+    private String token;
 
     public User(int id, String firstname, String lastname, String patronymic, String login, String password) {
         this.id = id;
@@ -72,6 +73,21 @@ public class User {
     }
 
     public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public void updateEntity(String firstname, String lastname, String patronymic, String password) {
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.patronymic = patronymic;
         this.password = password;
     }
 

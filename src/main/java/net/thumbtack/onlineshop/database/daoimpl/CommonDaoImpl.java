@@ -36,7 +36,7 @@ public class CommonDaoImpl extends BaseDaoImpl implements CommonDao {
 
                 categoryMapper.deleteAllCategory();
 
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't clear all DB ", ex);
                 sqlSession.rollback();
                 throw ex;

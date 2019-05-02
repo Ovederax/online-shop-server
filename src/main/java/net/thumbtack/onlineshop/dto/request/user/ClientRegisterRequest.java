@@ -1,20 +1,23 @@
 package net.thumbtack.onlineshop.dto.request.user;
 
 import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
-import net.thumbtack.onlineshop.validation.MaxNameLength;
+import net.thumbtack.onlineshop.validation.*;
 
 import javax.validation.constraints.*;
 
 public class ClientRegisterRequest {
     @NotNull(message = ValidationError.FIRST_NAME_CANNOT_BE_NULL)
     @MaxNameLength
+    @NameFormat
     private String firstName;
 
     @NotNull(message = ValidationError.LAST_NAME_CANNOT_BE_NULL)
     @MaxNameLength
+    @NameFormat
     private String lastName;
 
     @MaxNameLength
+    @NameFormat
     private String patronymic;
 
     @Email
@@ -23,23 +26,16 @@ public class ClientRegisterRequest {
     @NotBlank(message = ValidationError.ADDRESS_CANNOT_BE_EMPTY)
     private String address;
 
-    /**
-     Допустимые телефонные номера - сотовые номера
-     любых операторов России.
-     Номер может начинаться как с “8”, так и с “+7”.
-     Наличие в номере знаков “-” (дефис) ошибкой не является,
-     но перед записью в БД все знаки “-” удаляются.
-     Номера телефонов стационарной связи указывать не
-     разрешается.
-     Номер дома - не обязательно число (например, 20A).
-     Номер квартиры (если присутствует) - всегда число.
-     */
-    //TODO REG_EXP!
-    //@Pattern(regexp = "", message = ValidationError.PHONE_HAVE_NO_CORRECT_FORMAT)
+    @PhoneFormat
     private String phone;
 
-    // TODO свои аннотации
+    @NotNull(message = ValidationError.LOGIN_CANNOT_BE_NULL)
+    @MaxNameLength
+    @LoginFormat
     private String login;
+
+    @NotNull(message = ValidationError.PASSWORD_CANNOT_BE_NULL)
+    @MinPasswordLength
     private String password;
 
     public ClientRegisterRequest(String firstName, String lastName, String patronymic, String email, String address, String phone, String login, String password) {

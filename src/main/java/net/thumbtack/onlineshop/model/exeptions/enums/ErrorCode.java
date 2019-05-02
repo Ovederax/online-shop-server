@@ -8,6 +8,8 @@ public enum ErrorCode {
     BAD_LOGIN       ("login",       "Your login is bad"),
     BAD_PASSWORD    ("password",    "Your password is bad"),
     BAD_POSITION    ("position",    "Position is not correct"),
+    VALIDATE_ERROR("", ""),
+
     //DATABASE ERROR
     LOGIN_ALREADY_EXISTS("login",   "This login is used"),
     LOGIN_NOT_FOUND_DB  ("login",   "This login is not found"),
@@ -31,9 +33,19 @@ public enum ErrorCode {
     NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE("money", "You no can buy product if your money deposit is change"),
     BAD_UPDATE_DEPOSIT_IT_IS_CHANGE("money", "Bad update deposit, deposit is change"),
     PRODUCT_IS_DELETED("product", "Product is deleted"),
-    VALIDATE_ERROR("", "");
+    CANT_ADD_PRODUCT_WITH_NO_UNIQUE_NAME("name", "Cant add product with no unique name"),
+    CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME("name", "Cant add category with no unique name"),
 
+    //-----DATABASE COMMON_ERROR---------------
 
+    DB_CANT_DELETE_FROM_BASKET("", ""),
+
+    NOT_FOUND("","Page not found"),
+    INTERNAL_SERVER_ERROR("", "Internal server error"),
+
+    //-----------REQUEST ERROR-------------
+    NULL_REQUEST("", "No data in Request"),
+    COOKIE_MISSING("", "Cookie is missing");
 
     private String message;
     private String field;

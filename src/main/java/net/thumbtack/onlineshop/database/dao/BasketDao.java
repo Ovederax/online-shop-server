@@ -13,7 +13,5 @@ public interface BasketDao {
     BasketItem getProductInBasket(int id);
 
     void deleteItemFromBasketById(int id);
-    void deleteItemFromBasketByProductId(int id);
-
     List<BasketItem> getProductInBasketInRange(Client client, List<Integer> productsId);
 }

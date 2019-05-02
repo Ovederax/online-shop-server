@@ -1,26 +1,25 @@
 package net.thumbtack.onlineshop.dto.response.product;
 
-import java.util.List;
 import java.util.Objects;
 
-// REVU GetProductResponse
-public class ProductGetResponse {
+public class BuyProductResponse {
     private int id;
     private String name;
     private int price;
     private int count;
-    private List<String> categoriesNames;
 
-    public ProductGetResponse(int id, String name, int price, int count, List<String> categoriesNames) {
+
+
+    public BuyProductResponse() {
+    }
+
+    public BuyProductResponse(int id, String name, int price, int count) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.count = count;
-        this.categoriesNames = categoriesNames;
     }
 
-    public ProductGetResponse() {
-    }
 
     public int getId() {
         return id;
@@ -54,29 +53,20 @@ public class ProductGetResponse {
         this.count = count;
     }
 
-    public List<String> getCategoriesNames() {
-        return categoriesNames;
-    }
-
-    public void setCategoriesNames(List<String> categoriesNames) {
-        this.categoriesNames = categoriesNames;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ProductGetResponse)) return false;
-        ProductGetResponse that = (ProductGetResponse) o;
+        if (!(o instanceof BuyProductResponse)) return false;
+        BuyProductResponse that = (BuyProductResponse) o;
         return getId() == that.getId() &&
                 getPrice() == that.getPrice() &&
                 getCount() == that.getCount() &&
-                Objects.equals(getName(), that.getName()) &&
-                Objects.equals(getCategoriesNames(), that.getCategoriesNames());
+                Objects.equals(getName(), that.getName());
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(getId(), getName(), getPrice(), getCount(), getCategoriesNames());
+        return Objects.hash(getId(), getName(), getPrice(), getCount());
     }
 }

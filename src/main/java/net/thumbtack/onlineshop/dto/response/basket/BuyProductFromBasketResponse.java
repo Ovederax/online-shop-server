@@ -1,21 +1,20 @@
 package net.thumbtack.onlineshop.dto.response.basket;
 
-import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
-import net.thumbtack.onlineshop.model.entity.BasketItem;
+import net.thumbtack.onlineshop.dto.response.product.BuyProductResponse;
 
 import java.util.List;
 import java.util.Objects;
 
-public class BasketBuyProductResponse {
-    private List<ProductBuyResponse> bought;
+public class BuyProductFromBasketResponse {
+    private List<BuyProductResponse> bought;
     private List<ProductInBasketResponse> remaining;
 
 
 
-    public BasketBuyProductResponse() {
+    public BuyProductFromBasketResponse() {
     }
 
-    public BasketBuyProductResponse(List<ProductBuyResponse> bought, List<ProductInBasketResponse> remaining) {
+    public BuyProductFromBasketResponse(List<BuyProductResponse> bought, List<ProductInBasketResponse> remaining) {
         this.bought = bought;
         this.remaining = remaining;
     }
@@ -25,7 +24,7 @@ public class BasketBuyProductResponse {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BasketBuyProductResponse response = (BasketBuyProductResponse) o;
+        BuyProductFromBasketResponse response = (BuyProductFromBasketResponse) o;
         return Objects.equals(bought, response.bought) &&
                 Objects.equals(remaining, response.remaining);
     }
@@ -35,11 +34,11 @@ public class BasketBuyProductResponse {
         return Objects.hash(bought, remaining);
     }
 
-    public List<ProductBuyResponse> getBought() {
+    public List<BuyProductResponse> getBought() {
         return bought;
     }
 
-    public void setBought(List<ProductBuyResponse> bought) {
+    public void setBought(List<BuyProductResponse> bought) {
         this.bought = bought;
     }
 

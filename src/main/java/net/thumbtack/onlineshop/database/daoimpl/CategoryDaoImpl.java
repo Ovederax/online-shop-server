@@ -2,6 +2,8 @@ package net.thumbtack.onlineshop.database.daoimpl;
 
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
 import net.thumbtack.onlineshop.model.entity.Category;
+import net.thumbtack.onlineshop.model.exeptions.ServerException;
+import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,16 +18,16 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(CategoryDaoImpl.class);
 
     @Override
-    public void addCategory(Category category) {
+    public void addCategory(Category category) throws ServerException {
         LOGGER.debug("CategoryDao addCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).insertCategory(category);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
                 sqlSession.rollback();
-                // REVU throw your own exception everywhere
-                throw ex;
+                ErrorCode code = ErrorCode.CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME;
+                throw new ServerException(code.getErrorCode(), code.getMessage(), code.getField());
             }
             sqlSession.commit();
         }
@@ -37,7 +39,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).findCategoryById(id);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
                 throw ex;
             }
@@ -50,7 +52,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).updateCategoryById(id, name, parentId);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't updateCategory in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -61,21 +63,11 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
 
     @Override
     public void deleteCategory(int id) {
-        /**Удаление подкатегории приводит к тому, что все находившиеся
-         в нем товары больше к этой подкатегории не принадлежат.
-         Сами товары не удаляются.
-         Удаление категории приводит к удалению всех ее подкатегорий.
-         Все находившиеся в подкатегориях этой категории товары
-         больше не принадлежат к этим подкатегориям.
-         Если после удаления категории или подкатегории список
-         категорий для некоторого товара оказывается пустым, считается,
-         что этот товар теперь не принадлежит ни к одной категории или
-         подкатегории.*/
         LOGGER.debug("CategoryDao deleteCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).deleteCategoryById(id);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't deleteCategory in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -90,7 +82,7 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).getParentsCategories();
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't getParentsCategories in DB ", ex);
                 throw ex;
             }
@@ -98,23 +90,21 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
     }
 
     @Override
-    // REVU getCategoryById
-    public Category findCategoryById(int id) {
-        LOGGER.debug("CategoryDao findCategoryById");
+    public Category getCategoryById(int id) {
+        LOGGER.debug("CategoryDao getCategoryById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).findCategoryById(id);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findCategoryById in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getCategoryById in DB ", ex);
                 throw ex;
             }
         }
     }
 
     @Override
-    // REVU the same
-    public List<Category> findCategoriesById(List<Integer> categories) {
-        LOGGER.debug("CategoryDao findCategoriesById");
+    public List<Category> getCategoriesById(List<Integer> categories) {
+        LOGGER.debug("CategoryDao getCategoriesById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 if(categories.size() == 0) {
@@ -125,8 +115,8 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
                     joiner.add(it.toString());
                 }
                 return getCategoryMapper(sqlSession).findCategoriesById(joiner.toString());
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't findCategoriesById in DB ", ex);
+            } catch (Exception ex) {
+                LOGGER.info("Can't getCategoriesById in DB ", ex);
                 throw ex;
             }
         }

@@ -22,12 +22,7 @@ public class Client extends User{
     }
 
     public void updateEntity(String firstname, String lastname, String patronymic, String email, String address, String phone, String password) {
-        // REVU do not set fields of parent class in this class
-    	// use super(...) or this(...)
-    	setFirstname(firstname);
-        setLastname(lastname);
-        setPatronymic(patronymic);
-        setPassword(password);
+        super.updateEntity(firstname, lastname, patronymic, password);
         this.email = email;
         this.address = address;
         this.phone = phone;
@@ -71,6 +66,10 @@ public class Client extends User{
 
     public void setPurchases(List<Purchase> purchases) {
         this.purchases = purchases;
+    }
+
+    public int getMoney() {
+        return deposit.getMoney();
     }
 
     @Override

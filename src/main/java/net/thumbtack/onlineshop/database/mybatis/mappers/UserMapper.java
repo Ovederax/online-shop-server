@@ -1,9 +1,6 @@
 package net.thumbtack.onlineshop.database.mybatis.mappers;
 
-import net.thumbtack.onlineshop.model.entity.Administrator;
-import net.thumbtack.onlineshop.model.entity.Client;
-import net.thumbtack.onlineshop.model.entity.Deposit;
-import net.thumbtack.onlineshop.model.entity.User;
+import net.thumbtack.onlineshop.model.entity.*;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
 
@@ -21,10 +18,7 @@ public interface UserMapper {
     @Delete("DELETE FROM users")
     void deleteAllUsers();
 
-    @Select("SELECT id FROM users WHERE login=#{login}")
-    int findUserIdByLogin(String login);
-
-    @Select("SELECT * FROM users WHERE login=#{login}")
+    @Select("SELECT * FROM users WHERE lower(login)=lower(#{login})")
     User findUserByLogin(String login);
 
     @Update("UPDATE users SET firstname=#{firstname}, lastname=#{lastname}, patronymic=#{patronymic}, password=#{password} WHERE id=#{id}")
@@ -36,24 +30,45 @@ public interface UserMapper {
     @Insert("INSERT INTO clients(userId, email, address, phone) VALUES(#{id}, #{email}, #{address}, #{phone})")
     void insertClient(Client client);
 
-    @Select("SELECT * FROM users JOIN clients ON id=userId WHERE login=#{findLogin}")
-    Client findClientByLogin(String findLogin);
-
     @Select("SELECT * FROM users JOIN clients ON id=userId WHERE id=#{id}")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "deposit", column = "id", javaType = Deposit.class,
-            one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper.findDepositByClientId", fetchType = FetchType.EAGER))
+            one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper.findDepositByClientId", fetchType = FetchType.EAGER)),
+            @Result(property = "purchases", column = "id", javaType = List.class,
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findPurchasesByClientId", fetchType = FetchType.LAZY))
     })
     Client findClientById(int id);
 
     @Select("SELECT * FROM users JOIN clients ON id=userId")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "deposit", column = "id", javaType = Deposit.class,
+                    one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper.findDepositByClientId", fetchType = FetchType.EAGER)),
+            @Result(property = "purchases", column = "id", javaType = List.class,
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findPurchasesByClientId", fetchType = FetchType.LAZY))
+    })
     List<Client> findAllClients();
+
+
+    @Select("<script>" +
+            "SELECT * FROM users JOIN clients ON id=userId WHERE id IN " +
+            "<foreach item='item' index='index' collection='clients' open='(' separator=',' close=')'>" +
+            "   #{item}" +
+            "</foreach>" +
+            "</script>")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "deposit", column = "id", javaType = Deposit.class,
+                one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper.findDepositByClientId", fetchType = FetchType.EAGER)),
+        @Result(property = "purchases", column = "id", javaType = List.class,
+                many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findPurchasesByClientId", fetchType = FetchType.EAGER))
+    })
+    List<Client> getClientsById(@Param("clients") List<Integer> clients);
 
     @Update("UPDATE clients SET email=#{email}, address=#{address}, phone=#{phone} WHERE userId=#{id}")
     void updateClient(Client client);
 
-    // возможно стоит добавить касскадное удаление чтобы когда удалялась запись из clients было удаление из users
     @Delete("DELETE FROM clients WHERE userId=#{id}")
     void removeClientById(Client client);
 
@@ -64,7 +79,7 @@ public interface UserMapper {
     @Insert("INSERT INTO administrators(userId, position) VALUES(#{id}, #{position})")
     void insertAdmin(Administrator admin);
 
-    @Select("SELECT * FROM users JOIN administrators ON id=userId WHERE login=#{findLogin}")
+    @Select("SELECT * FROM users JOIN administrators ON id=userId WHERE lower(login)=lower(#{findLogin})")
     Administrator findAdministratorsByLogin(String findLogin);
 
     @Select("SELECT * FROM users JOIN administrators ON id=userId WHERE id=#{id}")
@@ -75,9 +90,6 @@ public interface UserMapper {
 
     @Update("UPDATE administrators SET position=#{position} WHERE userId=#{id}")
     void updateAdministrator(Administrator admin);
-
-    @Delete("DELETE FROM administrators WHERE userId=#{id}")
-    void removeAdministratorByLogin(Administrator admin);
 
     @Delete("DELETE FROM administrators")
     void deleteAllAdministrators();
@@ -98,14 +110,8 @@ public interface UserMapper {
     @Delete("DELETE FROM logged_users")
     void deleteAllLoginRecords();
 
-//    Это небезопасно
-//    @Update("UPDATE deposits SET money=#{deposit.money} WHERE clientId=#{id}")
-//    void reloadMoneyDeposit(Client client);
-
-    // А это безопасно
     @Update("UPDATE deposits SET money=#{newDeposit} WHERE clientId=#{client.id} AND money=#{client.deposit.money}")
     int updateMoneyDeposit(@Param("client") Client client, @Param("newDeposit") int newDeposit);
-
 
     //-------------------------------------------------------------------------------------
 

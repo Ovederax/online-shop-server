@@ -22,7 +22,7 @@ public final class ValidationError {
 
     public static final String LOGIN_CANNOT_BE_NULL = "Login cannot be null";
     public static final String PASSWORD_CANNOT_BE_NULL = "Password cannot be null";
-
+    public static final String COOOKIE_CANT_BE_NULL = "Cookie cant be null";
 
 
     private ValidationError(){};

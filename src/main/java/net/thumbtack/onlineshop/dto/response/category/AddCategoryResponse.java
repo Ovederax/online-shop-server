@@ -1,16 +1,38 @@
-package net.thumbtack.onlineshop.dto.response.cathegory;
+package net.thumbtack.onlineshop.dto.response.category;
 
 import java.util.Objects;
 
-public class CategoryGetResponse {
+public class AddCategoryResponse {
     private int id;
     private String name;
     private int parentId;
     private String parentName;
 
-    public CategoryGetResponse() {
+    public AddCategoryResponse(int id, String name, int parentId, String parentName) {
+        this.id = id;
+        this.name = name;
+        this.parentId = parentId;
+        this.parentName = parentName;
     }
 
+    public AddCategoryResponse() {
+    }
+
+
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+    public String getParentName() {
+        return parentName;
+    }
+    public void setParentName(String parentName) {
+        this.parentName = parentName;
+    }
 
     public int getId() {
         return id;
@@ -28,35 +50,11 @@ public class CategoryGetResponse {
         this.parentId = parentId;
     }
 
-
-    public CategoryGetResponse(int id, String name, int parentId, String parentName) {
-        this.id = id;
-        this.name = name;
-        this.parentId = parentId;
-        this.parentName = parentName;
-    }
-
-
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getParentName() {
-        return parentName;
-    }
-    public void setParentName(String parentName) {
-        this.parentName = parentName;
-    }
-
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CategoryGetResponse)) return false;
-        CategoryGetResponse that = (CategoryGetResponse) o;
+        if (!(o instanceof AddCategoryResponse)) return false;
+        AddCategoryResponse that = (AddCategoryResponse) o;
         return getId() == that.getId() &&
                 getParentId() == that.getParentId() &&
                 Objects.equals(getName(), that.getName()) &&

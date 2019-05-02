@@ -1,4 +1,4 @@
-package net.thumbtack.onlineshop.dto.request.basket;
+package net.thumbtack.onlineshop.dto.request.product;
 
 import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
 
@@ -7,8 +7,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.Objects;
 
-public class BasketBuyProductRequest {
-    @Min(value = 1, message = ValidationError.ID_MUST_GREAT_ZERO)
+public class BuyProductRequest {
+    @NotNull(message = ValidationError.PARENT_ID_MUST_GREAT_ZERO)
     private int id;
 
     @NotNull(message = ValidationError.PRODUCT_NAME_CANNOT_BE_NULL)
@@ -18,16 +18,17 @@ public class BasketBuyProductRequest {
     private int price;
 
     @PositiveOrZero(message = ValidationError.PRODUCT_COUNT_CANNOT_BE_LESS_ZERO)
-    private Integer count;
+    private Integer count; // необязательный
 
-    public BasketBuyProductRequest(int id, String name, int price, Integer count) {
+
+    public BuyProductRequest(int id, String name, int price, Integer count) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.count = count;
     }
 
-    public BasketBuyProductRequest() {
+    public BuyProductRequest() {
     }
 
     public int getId() {
@@ -58,10 +59,6 @@ public class BasketBuyProductRequest {
         return count;
     }
 
-    public void setCount(int count) {
-        this.count = count;
-    }
-
     public void setCount(Integer count) {
         this.count = count;
     }
@@ -70,11 +67,11 @@ public class BasketBuyProductRequest {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        BasketBuyProductRequest that = (BasketBuyProductRequest) o;
+        BuyProductRequest that = (BuyProductRequest) o;
         return id == that.id &&
                 price == that.price &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(count, that.count);
+                count == that.count &&
+                Objects.equals(name, that.name);
     }
 
     @Override

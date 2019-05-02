@@ -1,19 +1,24 @@
 package net.thumbtack.onlineshop.controllers;
 
 import net.thumbtack.onlineshop.dto.response.AvailableSettingResponse;
+import net.thumbtack.onlineshop.dto.response.summary.SummaryListResponse;
+import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.service.AdministratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+import java.util.List;
 
+@Validated
 @RestController
-public class AdministratorController extends CommonController {
+public class AdministratorController {
     private AdministratorService service;
 
     @Autowired
@@ -21,28 +26,25 @@ public class AdministratorController extends CommonController {
         this.service = service;
     }
 
-    /*
-    Этот endpoint Вам предстоит разработать самим. Необходимо предусмотреть как выдачу всей информации, так и выдачу
-    информации по отдельным категориям или списку категорий, по товару или списку товаров, по клиентам и т.д. Желательно
-    предусмотреть критерии упорядочения результирующей выборки. Ответ должен также содержать итоговые значения по выборке.
-    Например, если возвращается список покупок некоторого клиента, в ответ надо включить их суммарную стоимость. Также
-    необходимо предусмотреть вариант, когда выдаются только итоговые значения, без подробностей - в тех случаях, когда это имеет
-    смысл.
-    Ввиду того, что данный запрос может возвращать очень много данных, следует предусмотреть пагинацию результатов, введя
-    параметры запроса “offset” (номер строки результата, с которой начать выдачу) и “limit” (количество строк). Итоговые значения при
-    этом приводятся для возвращаемой выборки, а не для всего списка.
-    */
-//    @GetMapping(path="/api/purchases/параметры", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
-//            produces = MediaType.APPLICATION_JSON_VALUE )
-//    public String getSummaryList(@Valid @CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, @Valid @RequestBody Dto dto, HttpServletResponse response) {
-//        //по куки
-//        return "{}";
-//    }
+    @GetMapping(path="/api/purchases", consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE )
+    public SummaryListResponse getSummaryList(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+                                              @RequestParam (value = "allInfo", required = false, defaultValue = "false") Boolean allInfo, // all or only summary
+                                              @RequestParam (value = "categories", required = false) List<Integer> categories,
+                                              @RequestParam (value = "products", required = false)   List<Integer> products,
+                                              @RequestParam (value = "clients", required = false)    List<Integer> clients,
+                                              @RequestParam (value = "offset", required = false, defaultValue = "1") Integer offset,
+                                              @RequestParam(value = "limit", required = false, defaultValue = "100") Integer limit,
+                                              HttpServletResponse response) throws ServerException {
+        response.setStatus(HttpServletResponse.SC_OK);
+        return service.getSummaryList( cookie.getValue(), allInfo, categories, products, clients, offset, limit );
+    }
 
     @GetMapping(path="/api/settings", produces = MediaType.APPLICATION_JSON_VALUE )
     public AvailableSettingResponse getSettings(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
         response.setStatus(HttpServletResponse.SC_OK);
-        return service.getSettings(cookie.getValue());
+        String cookieValue = cookie != null? cookie.getValue() : null;
+        return service.getSettings(cookieValue);
     }
 
 

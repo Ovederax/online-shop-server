@@ -1,6 +1,7 @@
 package net.thumbtack.onlineshop.dto.request.user;
 
 import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
+import net.thumbtack.onlineshop.validation.LoginFormat;
 import net.thumbtack.onlineshop.validation.MaxNameLength;
 import net.thumbtack.onlineshop.validation.MinPasswordLength;
 
@@ -9,6 +10,7 @@ import javax.validation.constraints.NotNull;
 public class UserLoginRequest {
     @NotNull(message = ValidationError.LOGIN_CANNOT_BE_NULL)
     @MaxNameLength
+    @LoginFormat
     private String login;
 
     @NotNull(message = ValidationError.PASSWORD_CANNOT_BE_NULL)

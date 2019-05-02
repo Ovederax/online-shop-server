@@ -3,11 +3,11 @@ package net.thumbtack.onlineshop.service;
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductBuyRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductEditRequest;
+import net.thumbtack.onlineshop.dto.request.product.AddProductRequest;
+import net.thumbtack.onlineshop.dto.request.product.BuyProductRequest;
+import net.thumbtack.onlineshop.dto.request.product.EditProductRequest;
 import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
+import net.thumbtack.onlineshop.dto.response.product.BuyProductResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.enums.ProductSortOrder;
 import net.thumbtack.onlineshop.model.entity.*;
@@ -34,14 +34,6 @@ public class ProductService extends ServiceBase{
         this.categoryDao = categoryDao;
     }
 
-    private List<String> getCategoriesListNames(Product p) {
-        List<String> list = new ArrayList<>();
-        for(Category it : p.getCategories()) {
-            list.add(it.getName());
-        }
-        return list;
-    }
-
     private List<Integer> getCategoriesListId(List<Category> categories) {
         List<Integer> list = new ArrayList<>();
         if(categories == null) {
@@ -53,18 +45,18 @@ public class ProductService extends ServiceBase{
         return list;
     }
 
-    public ProductResponse addProduct(ProductAddRequest dto, String token) throws ServerException {
+    public ProductResponse addProduct(AddProductRequest dto, String token) throws ServerException {
         checkAdministratorPrivileges(userDao, token);
         int id = productDao.addProduct(new Product(dto.getName(), dto.getPrice(), dto.getCount(), null), dto.getCategories());
         return new ProductResponse(id, dto.getName(), dto.getPrice(), dto.getCount(), dto.getCategories() != null ? dto.getCategories() : new ArrayList<>());
     }
 
-    public ProductResponse updateProduct(int id, ProductEditRequest dto, String token) throws ServerException {
+    public ProductResponse updateProduct(int id, EditProductRequest dto, String token) throws ServerException {
         checkAdministratorPrivileges(userDao, token);
-        Product product = productDao.findProductById(id);
+        Product product = productDao.getProductById(id);
         List<Category> categories = null;
         if(dto.getCategories() != null) {
-            categories = categoryDao.findCategoriesById(dto.getCategories());
+            categories = categoryDao.getCategoriesById(dto.getCategories());
         }
         productDao.updateProduct(product, dto.getName(), dto.getPrice(), dto.getCount(), categories);
         if(dto.getCategories() == null) {
@@ -75,21 +67,14 @@ public class ProductService extends ServiceBase{
 
     public void deleteProduct(int id, String token) throws ServerException {
         checkAdministratorPrivileges(userDao, token);
-        // TODO
-        // Вернутся после завершения Корзины и Покупок
-        // Не ясно как должна работать логика удаления продукта
-        // Логика зависит от того как это будет работать в совокупности с корзиной и покупками
-        // Пока оставлю такую реализацию
-        productDao.markProductAsDeleted(productDao.findProductById(id));
+        productDao.markProductAsDeleted(productDao.getProductById(id));
     }
 
     public GetProductResponse getProduct(int id, String token) throws ServerException {
-        // REVU do not use one-letter names
-    	// User user;
-    	// Product product;
-    	User u = userDao.findUserByToken(token); // check user exist
-        Product p = productDao.findProductById(id);
-        return new GetProductResponse(p.getId(), p.getName(), p.getPrice(), p.getCounter(), getCategoriesListNames(p));
+    	User user = userDao.getUserByToken(token);
+        Product product = productDao.getProductById(id);
+        return new GetProductResponse(product.getId(), product.getName(),
+                product.getPrice(), product.getCounter(), getCategoriesListNames(product));
     }
 
     private List<GetProductResponse> getProductListWithoutCategory() {
@@ -101,7 +86,7 @@ public class ProductService extends ServiceBase{
         return list;
     }
     public List<GetProductResponse> getProductsList(List<Integer> categoriesId, String order, String token) throws ServerException, IOException {
-        userDao.findUserByToken(token); // check user exist
+        userDao.getUserByToken(token); // check user exist
 
         if (categoriesId != null && categoriesId.size() == 0) {
             return getProductListWithoutCategory();
@@ -158,22 +143,22 @@ public class ProductService extends ServiceBase{
         }
     }
 
-    public ProductBuyResponse buyProduct(ProductBuyRequest dto, String token) throws ServerException {
+    public BuyProductResponse buyProduct(BuyProductRequest dto, String token) throws ServerException {
         Client client = getClientByToken(userDao, token);
-        Product product = productDao.findProductById(dto.getId());
+        Product product = productDao.getProductById(dto.getId());
         int count = 1;
         if(dto.getCount() != null) {
             count = dto.getCount();
         }
         int totalCost = count*dto.getPrice();
-        if(client.getDeposit().getMoney() < totalCost) {
+        if(client.getMoney() < totalCost) {
             throw new ServerException(ErrorCode.YOU_NEED_MORE_MONEY_TO_BUY);
         }
-        // REVU create method getMobey in Client and client.getMoney() - totalCost;
-        int newMoneyDeposit = client.getDeposit().getMoney() - totalCost;
+
+        int newMoneyDeposit = client.getMoney() - totalCost;
         int newProductCount = product.getCounter() - count;
         checkProductParameters(product, dto.getName(), dto.getPrice(), count);
         int id = productDao.buyProduct(new Purchase(product, dto.getName(), count, product.getPrice()), client, newMoneyDeposit, newProductCount);
-        return new ProductBuyResponse(id, dto.getName(), dto.getPrice(), count);
+        return new BuyProductResponse(id, dto.getName(), dto.getPrice(), count);
     }
 }

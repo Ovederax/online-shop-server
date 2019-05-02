@@ -1,6 +1,6 @@
 package net.thumbtack.onlineshop.dto.response.user;
 
-import java.util.List;
+import java.util.Objects;
 
 public class ClientInfo {
     private int id;
@@ -88,5 +88,26 @@ public class ClientInfo {
 
     public void setUserType(String userType) {
         this.userType = userType;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClientInfo that = (ClientInfo) o;
+        return id == that.id &&
+                Objects.equals(firstName, that.firstName) &&
+                Objects.equals(lastName, that.lastName) &&
+                Objects.equals(patronymic, that.patronymic) &&
+                Objects.equals(email, that.email) &&
+                Objects.equals(address, that.address) &&
+                Objects.equals(phone, that.phone) &&
+                Objects.equals(userType, that.userType);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id, firstName, lastName, patronymic, email, address, phone, userType);
     }
 }

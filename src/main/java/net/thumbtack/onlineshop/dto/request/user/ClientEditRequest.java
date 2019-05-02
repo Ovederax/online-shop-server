@@ -3,6 +3,8 @@ package net.thumbtack.onlineshop.dto.request.user;
 import net.thumbtack.onlineshop.model.exeptions.enums.ValidationError;
 import net.thumbtack.onlineshop.validation.MaxNameLength;
 import net.thumbtack.onlineshop.validation.MinPasswordLength;
+import net.thumbtack.onlineshop.validation.NameFormat;
+import net.thumbtack.onlineshop.validation.PhoneFormat;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -12,13 +14,16 @@ import javax.validation.constraints.Pattern;
 public class ClientEditRequest {
     @NotNull(message = ValidationError.FIRST_NAME_CANNOT_BE_NULL)
     @MaxNameLength
+    @NameFormat
     private String firstName;
 
     @NotNull(message = ValidationError.LAST_NAME_CANNOT_BE_NULL)
     @MaxNameLength
+    @NameFormat
     private String lastName;
 
     @MaxNameLength
+    @NameFormat
     private String patronymic;
 
     @Email
@@ -27,8 +32,7 @@ public class ClientEditRequest {
     @NotEmpty(message = ValidationError.ADDRESS_CANNOT_BE_EMPTY)
     private String address;
 
-    //TODO REG_EXP!
-    //@Pattern(regexp = "", message = ValidationError.PHONE_HAVE_NO_CORRECT_FORMAT)
+    @PhoneFormat
     private String phone;
 
     @NotNull(message = ValidationError.PASSWORD_CANNOT_BE_NULL)

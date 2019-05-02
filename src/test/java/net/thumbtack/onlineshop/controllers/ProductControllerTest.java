@@ -1,9 +1,9 @@
 package net.thumbtack.onlineshop.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductEditRequest;
-import net.thumbtack.onlineshop.dto.response.product.ProductGetResponse;
+import net.thumbtack.onlineshop.dto.request.product.AddProductRequest;
+import net.thumbtack.onlineshop.dto.request.product.EditProductRequest;
+import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
 import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.utils.CommonUtils;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class ProductControllerTest {
     @Test
     public void addProductTest() throws Exception {
         Cookie token = utils.registerTestAdmin(mvc);
-        ProductAddRequest req = new ProductAddRequest("product", 10, 12, null);
+        AddProductRequest req = new AddProductRequest("product", 10, 12, null);
         ProductResponse respExpected = new ProductResponse(0,"product", 10, 12, new ArrayList<>());
 
         ResultActions res = mvc.perform(post("/api/products")
@@ -68,7 +68,7 @@ public class ProductControllerTest {
         Cookie token = utils.registerTestAdmin(mvc);
         int categoryId = utils.addTestCategory(token, mvc);
 
-        ProductAddRequest req = new ProductAddRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
+        AddProductRequest req = new AddProductRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
 
         ResultActions res = mvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -87,10 +87,10 @@ public class ProductControllerTest {
 
         mvcRes = res.andExpect(status().isOk()).andReturn();
         content = mvcRes.getResponse().getContentAsString();
-        ProductGetResponse response = mapper.readValue(content, ProductGetResponse.class);
+        GetProductResponse response = mapper.readValue(content, GetProductResponse.class);
 
         assertEquals(response.getId(), actual.getId());
-        assertEquals(new ProductGetResponse(response.getId(),"product", 10, 12, new ArrayList<>(Arrays.asList("Phones"))), response);
+        assertEquals(new GetProductResponse(response.getId(),"product", 10, 12, new ArrayList<>(Arrays.asList("Phones"))), response);
 
     }
 
@@ -99,7 +99,7 @@ public class ProductControllerTest {
         Cookie token = utils.registerTestAdmin(mvc);
         int categoryId = utils.addTestCategory(token, mvc);
 
-        ProductAddRequest req = new ProductAddRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
+        AddProductRequest req = new AddProductRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
 
         ResultActions res = mvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -114,7 +114,7 @@ public class ProductControllerTest {
 
         res = mvc.perform(put("/api/products/"+actual.getId())
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
-                .content(mapper.writeValueAsString(new ProductEditRequest("superProduct", 3,7,null)))
+                .content(mapper.writeValueAsString(new EditProductRequest("superProduct", 3,7,null)))
                 .cookie(token));
 
         mvcRes = res.andReturn();
@@ -131,10 +131,10 @@ public class ProductControllerTest {
 
         mvcRes = res.andExpect(status().isOk()).andReturn();
         content = mvcRes.getResponse().getContentAsString();
-        ProductGetResponse getResponse = mapper.readValue(content, ProductGetResponse.class);
+        GetProductResponse getResponse = mapper.readValue(content, GetProductResponse.class);
 
         assertEquals(getResponse.getId(), actual.getId());
-        assertEquals(new ProductGetResponse(getResponse.getId(),"superProduct", 3, 7, new ArrayList<>(Arrays.asList("Phones"))), getResponse);
+        assertEquals(new GetProductResponse(getResponse.getId(),"superProduct", 3, 7, new ArrayList<>(Arrays.asList("Phones"))), getResponse);
     }
 
     @Test
@@ -142,7 +142,7 @@ public class ProductControllerTest {
         Cookie token = utils.registerTestAdmin(mvc);
         int categoryId = utils.addTestCategory(token, mvc);
 
-        ProductAddRequest req = new ProductAddRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
+        AddProductRequest req = new AddProductRequest("product", 10, 12, new ArrayList<>(Collections.singletonList(categoryId)));
 
         ResultActions res = mvc.perform(post("/api/products")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -168,10 +168,10 @@ public class ProductControllerTest {
 
         mvcRes = res.andExpect(status().isOk()).andReturn();
         content = mvcRes.getResponse().getContentAsString();
-        ProductGetResponse response = mapper.readValue(content, ProductGetResponse.class);
+        GetProductResponse response = mapper.readValue(content, GetProductResponse.class);
 
         assertEquals(response.getId(), actual.getId());
-        assertEquals(new ProductGetResponse(response.getId(),"product", 10, 12, new ArrayList<>(Arrays.asList("Phones"))), response);
+        assertEquals(new GetProductResponse(response.getId(),"product", 10, 12, new ArrayList<>(Arrays.asList("Phones"))), response);
     }
 
     @Test

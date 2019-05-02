@@ -1,19 +1,13 @@
 package net.thumbtack.onlineshop.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import net.thumbtack.onlineshop.dto.request.basket.AddProductToBasketsRequest;
-import net.thumbtack.onlineshop.dto.request.basket.BasketBuyProductRequest;
+import net.thumbtack.onlineshop.dto.request.basket.BuyProductFromBasketRequest;
 import net.thumbtack.onlineshop.dto.request.basket.BasketUpdateCountProductRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductAddRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductBuyRequest;
-import net.thumbtack.onlineshop.dto.response.basket.BasketBuyProductResponse;
+import net.thumbtack.onlineshop.dto.response.basket.BuyProductFromBasketResponse;
 import net.thumbtack.onlineshop.dto.response.basket.ProductInBasketResponse;
-import net.thumbtack.onlineshop.dto.response.cathegory.CategoryGetResponse;
 import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import net.thumbtack.onlineshop.model.entity.Product;
 import net.thumbtack.onlineshop.utils.CommonUtils;
@@ -31,16 +25,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import javax.servlet.http.Cookie;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -254,11 +246,11 @@ public class BasketControllerTest {
             assertEquals(actual.get(i), respExpected);
         }
 
-        List<BasketBuyProductRequest> list = new ArrayList<>();
+        List<BuyProductFromBasketRequest> list = new ArrayList<>();
         assert actual != null;
         for (int i = 0; i<actual.size()-1; ++i) {
             ProductInBasketResponse it = actual.get(i);
-            list.add(new BasketBuyProductRequest(it.getId(), it.getName(), it.getPrice(), it.getCount()));
+            list.add(new BuyProductFromBasketRequest(it.getId(), it.getName(), it.getPrice(), it.getCount()));
         }
         res = mvc.perform(post("/api/purchases/basket")
                 .cookie(clientToken)
@@ -268,7 +260,7 @@ public class BasketControllerTest {
         mvcRes = res.andReturn();
         content = mvcRes.getResponse().getContentAsString();
 
-        BasketBuyProductResponse response = mapper.readValue(content, BasketBuyProductResponse.class);
+        BuyProductFromBasketResponse response = mapper.readValue(content, BuyProductFromBasketResponse.class);
         assertEquals(3, response.getBought().size());
 
 

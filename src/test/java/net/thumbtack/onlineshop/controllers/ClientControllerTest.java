@@ -1,14 +1,10 @@
 package net.thumbtack.onlineshop.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.thumbtack.onlineshop.dto.request.basket.AddProductToBasketsRequest;
-import net.thumbtack.onlineshop.dto.request.product.ProductBuyRequest;
+import net.thumbtack.onlineshop.dto.request.product.BuyProductRequest;
 import net.thumbtack.onlineshop.dto.request.user.DepositMoneyRequest;
-import net.thumbtack.onlineshop.dto.response.basket.ProductInBasketResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductGetResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductResponse;
+import net.thumbtack.onlineshop.dto.response.product.BuyProductResponse;
+import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import net.thumbtack.onlineshop.model.entity.Product;
 import net.thumbtack.onlineshop.utils.CommonUtils;
@@ -55,7 +51,7 @@ public class ClientControllerTest {
     public void addMoneyDeposit() throws Exception {
         Cookie token = utils.registerTestClient(mvc);
         DepositMoneyRequest req = new DepositMoneyRequest("123");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"first", "last", null, "user@gmail.com", "address", "phone", 123);
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"Иван", "Иванов", null, "user@gmail.com", "address", "89136668899", 123);
 
         ResultActions res = mvc.perform(post("/api/deposits")
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -92,8 +88,8 @@ public class ClientControllerTest {
         Product product = new Product("name1", 10, 20, null);
         int productId = (utils.addProduct(product,  adminToken, categoriesList, mvc));
 
-        ProductBuyRequest req = new ProductBuyRequest(productId, product.getName(), product.getPrice(), null);
-        ProductBuyResponse respExpected = new ProductBuyResponse( 0, product.getName(), product.getPrice(), 1);
+        BuyProductRequest req = new BuyProductRequest(productId, product.getName(), product.getPrice(), null);
+        BuyProductResponse respExpected = new BuyProductResponse( 0, product.getName(), product.getPrice(), 1);
 
         ResultActions res = mvc.perform(post("/api/purchases")
                 .cookie(clientToken)
@@ -103,7 +99,7 @@ public class ClientControllerTest {
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
 
-        ProductBuyResponse actual = mapper.readValue(content, ProductBuyResponse.class);
+        BuyProductResponse actual = mapper.readValue(content, BuyProductResponse.class);
         respExpected.setId(actual.getId());
 
         assertEquals(respExpected, actual);
@@ -121,7 +117,7 @@ public class ClientControllerTest {
         mvcRes = res.andExpect(status().isOk()).andReturn();
         content = mvcRes.getResponse().getContentAsString();
 
-        assertEquals(product.getCounter()-1, mapper.readValue(content, ProductGetResponse.class).getCount());
+        assertEquals(product.getCounter()-1, mapper.readValue(content, GetProductResponse.class).getCount());
     }
 
 }

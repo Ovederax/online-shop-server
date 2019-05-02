@@ -7,7 +7,7 @@ CREATE TABLE users (
     firstname VARCHAR(50) NOT NULL,
     lastname VARCHAR(50) NOT NULL,
     patronymic VARCHAR(50),
-    login VARCHAR(50) NOT NULL,
+    login VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
     password VARCHAR(50) NOT NULL,
 
     UNIQUE KEY users(login),
@@ -81,7 +81,6 @@ CREATE TABLE baskets (
     FOREIGN KEY(productId) REFERENCES products(id),
     UNIQUE KEY products_categories(userId, productId)
 ) ENGINE=INNODB DEFAULT CHARSET=utf8;
-
 
 CREATE TABLE purchases (
     id INT(11) NOT NULL AUTO_INCREMENT,

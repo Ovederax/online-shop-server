@@ -4,12 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import net.thumbtack.onlineshop.database.dao.BasketDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
-import net.thumbtack.onlineshop.dto.request.basket.BasketBuyProductRequest;
+import net.thumbtack.onlineshop.dto.request.basket.BuyProductFromBasketRequest;
 import net.thumbtack.onlineshop.dto.request.basket.BasketUpdateCountProductRequest;
 import net.thumbtack.onlineshop.dto.request.basket.AddProductToBasketsRequest;
-import net.thumbtack.onlineshop.dto.response.basket.BasketBuyProductResponse;
+import net.thumbtack.onlineshop.dto.response.basket.BuyProductFromBasketResponse;
 import net.thumbtack.onlineshop.dto.response.basket.ProductInBasketResponse;
-import net.thumbtack.onlineshop.dto.response.product.ProductBuyResponse;
+import net.thumbtack.onlineshop.dto.response.product.BuyProductResponse;
 import net.thumbtack.onlineshop.model.entity.BasketItem;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
@@ -53,7 +53,7 @@ public class BasketService extends ServiceBase{
         if(count == 0) {
             count = 1;
         }
-        Product product = productDao.findProductById(dto.getId());
+        Product product = productDao.getProductById(dto.getId());
         checkProductData(product, dto.getName(), dto.getPrice());
         basketDao.addProductToBasket(client, new BasketItem(product, count));
         return getProductsInBasket(client);
@@ -89,7 +89,7 @@ public class BasketService extends ServiceBase{
         return getProductsInBasket(client);
     }
 
-    public BasketBuyProductResponse buyProductFromBasket(List<BasketBuyProductRequest> dto, String token) throws ServerException {
+    public BuyProductFromBasketResponse buyProductFromBasket(List<BuyProductFromBasketRequest> dto, String token) throws ServerException {
 //        1)   Формируем лист покупок отсеевая лишнее
 //        1.5) Если у клиента нет достаточных средств на эти покупки, то заканчиваем --->
 //        2)   Поочередно отправляем элементы списка в метод покупки, успешно/неуспешно купленное добовляем в различные листы
@@ -97,11 +97,10 @@ public class BasketService extends ServiceBase{
         Client client = getClientByToken(userDao, token);
 
         List<Integer> productsId = new ArrayList<>();
-        for(BasketBuyProductRequest it : dto) {
+        for(BuyProductFromBasketRequest it : dto) {
             productsId.add(it.getId());
         }
         List<BasketItem> basketItems = basketDao.getProductInBasketInRange(client, productsId);
-
 
         List<Purchase> purchases = new ArrayList<>();
 
@@ -111,9 +110,9 @@ public class BasketService extends ServiceBase{
             if(product.getIsDeleted() == 1) {
                 continue;
             }
-            BasketBuyProductRequest it = dto.get(i);
+            BuyProductFromBasketRequest it = dto.get(i);
             int count;
-            if(it.getCount() == null || it.getCount() > basketItems.get(i).getCount()) {
+            if(it.getCount() == 0 || it.getCount() > basketItems.get(i).getCount()) {
                 count = basketItems.get(i).getCount();
             } else {
                 count = it.getCount();
@@ -122,23 +121,22 @@ public class BasketService extends ServiceBase{
             amount += it.getCount() * it.getPrice();
             purchases.add(purchase);
         }
-        if(amount > client.getDeposit().getMoney()) {
+        if(amount > client.getMoney()) {
             throw new ServerException(ErrorCode.YOU_NEED_MORE_MONEY_TO_BUY);
         }
 
-        List<ProductBuyResponse> successList = new ArrayList<>();
-        for(Purchase it : purchases) {
+        List<BuyProductResponse> successList = new ArrayList<>();
+        for (Purchase it : purchases) {
             Product product = it.getActual();
             try {
-                int newDeposit = client.getDeposit().getMoney() - it.getBuyCount()*it.getBuyPrice();
+                int newDeposit = client.getMoney() - it.getBuyCount() * it.getBuyPrice();
                 int newCount = product.getCounter() - it.getBuyCount();
-                // REVU better do both operations in transaction
-                // i.e in 1 dao method
-                productDao.buyProduct(it, client, newDeposit, newCount);
-                basketDao.deleteItemFromBasketByProductId(it.getActual().getId());
-                successList.add(new ProductBuyResponse(product.getId(), product.getName(), product.getPrice(), it.getBuyCount()));
-            } catch (ServerException ignored) {
-            	// REVU why ignored ?
+                productDao.buyProductFromBasket(it, client, newDeposit, newCount);
+                successList.add(new BuyProductResponse(product.getId(), product.getName(), product.getPrice(), it.getBuyCount()));
+            } catch (ServerException ex) {
+                if (ex.getErrorCode().equals(ErrorCode.NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE.getErrorCode())) {
+                    break;
+                } /* else if product is change it's normally*/
             }
         }
         List<ProductInBasketResponse> remainingList = new ArrayList<>();
@@ -146,6 +144,6 @@ public class BasketService extends ServiceBase{
             Product product = it.getProduct();
             remainingList.add(new ProductInBasketResponse(it.getId(), product.getName(), product.getPrice(), it.getCount()));
         }
-        return new BasketBuyProductResponse(successList, remainingList);
+        return new BuyProductFromBasketResponse(successList, remainingList);
     }
 }

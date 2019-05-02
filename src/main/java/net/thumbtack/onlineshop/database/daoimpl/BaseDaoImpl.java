@@ -17,8 +17,5 @@ public class BaseDaoImpl {
     protected ProductMapper getProductMapper(SqlSession sqlSession) { return sqlSession.getMapper(ProductMapper.class); }
     protected BasketMapper getBasketMapper(SqlSession sqlSession) { return sqlSession.getMapper(BasketMapper.class); }
     protected DepositMapper getDepositMapper(SqlSession sqlSession) { return sqlSession.getMapper(DepositMapper.class); }
-    protected CommonMapper getCommonMapper(SqlSession sqlSession) {
-        return sqlSession.getMapper(CommonMapper.class);
-    }
 
 }

@@ -64,12 +64,12 @@ public class UserControllerTest {
 
     @Test
     public void registerClientTest() throws Exception {
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("Петр", "Петров", null, "user@gmail.com", "address", "+7-999-4455445", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"Петр", "Петров", null, "user@gmail.com", "address", "+79994455445", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("cName"))
+                .andExpect(jsonPath("firstName").value("Петр"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -84,12 +84,12 @@ public class UserControllerTest {
     @Test
     public void logoutAndLoginClientTest() throws Exception {
         // register + login + getinfo
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("Петр", "Петров", null, "user@gmail.com", "address", "+7-999-4455445", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"Петр", "Петров", null, "user@gmail.com", "address", "+79994455445", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("cName"))
+                .andExpect(jsonPath("firstName").value("Петр"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -140,12 +140,11 @@ public class UserControllerTest {
         assertEquals(0, list.size());
 
         //CLIENT REGISTER
-        ClientRegisterRequest clientRegisterRequest = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
-        ClientInfoResponse clientInfoResponse = new ClientInfoResponse(0, "cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
+        ClientRegisterRequest clientRegisterRequest = new ClientRegisterRequest("Петр", "Петров", null, "user@gmail.com", "address", "+7-999-4455445", "login", "pass");
+        ClientInfoResponse clientInfoResponse = new ClientInfoResponse(0, "Петр", "Петров", null, "user@gmail.com", "address", "+79994455445", 0);
 
         res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(clientRegisterRequest)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("cName"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         mvcRes = res.andReturn();
         content = mvcRes.getResponse().getContentAsString();
@@ -191,12 +190,12 @@ public class UserControllerTest {
 
     @Test
     public void updateClientProfileTest() throws Exception {
-        ClientRegisterRequest req = new ClientRegisterRequest("cName", "cLast", null, "user@gmail.com", "address", "phone", "login", "pass");
-        ClientInfoResponse respExpected = new ClientInfoResponse(0,"cName", "cLast", null, "user@gmail.com", "address", "phone", 0);
+        ClientRegisterRequest req = new ClientRegisterRequest("Петр", "Петров", null, "user@gmail.com", "address", "+7-999-4455445", "login", "pass");
+        ClientInfoResponse respExpected = new ClientInfoResponse(0,"Петр", "Петров", null, "user@gmail.com", "address", "+79994455445", 0);
 
         ResultActions res = mvc.perform(post("/api/clients").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("cName"))
+                .andExpect(jsonPath("firstName").value("Петр"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -207,8 +206,8 @@ public class UserControllerTest {
 
         assertEquals(respExpected, actual);
 
-        ClientEditRequest admEditReq = new ClientEditRequest("1", "2", "3", "user2@gmail.com", "address2", "phone2", "pass", "newpass");
-        respExpected = new ClientInfoResponse(0,"1", "2", "3", "user2@gmail.com", "address2", "phone2", 0);
+        ClientEditRequest admEditReq = new ClientEditRequest("Илья", "Смирнов", "ЁдритьКолотить", "user2@gmail.com", "address2", "+76666666666", "pass", "newpass");
+        respExpected = new ClientInfoResponse(0,"Илья", "Смирнов", "ЁдритьКолотить", "user2@gmail.com", "address2", "+76666666666", 0);
         res = mvc.perform(put("/api/clients").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
         actual = mapper.readValue(mvcRes.getResponse().getContentAsString(), ClientInfoResponse.class);

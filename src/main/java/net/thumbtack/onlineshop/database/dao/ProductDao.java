@@ -9,13 +9,15 @@ import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import java.util.List;
 
 public interface ProductDao {
-    int addProduct(Product product, List<Integer> categories);
-    Product findProductById(int id);
+    int addProduct(Product product, List<Integer> categories) throws ServerException;
+    Product getProductById(int id);
     void updateProduct(Product product, String name, Integer price, Integer counter, List<Category> categories) throws ServerException;
     void markProductAsDeleted(Product id);
     int buyProduct(Purchase purchase, Client client, int newMoneyDeposit, int newProductCount) throws ServerException;
+    int buyProductFromBasket(Purchase it, Client client, int newDeposit, int newCount) throws ServerException;
     List<Product> getProductListOrderProduct(List<Integer> categoriesId);
     List<Product> getProductListOrderProductNoCategory();
     List<Category> getProductListOrderCategory(List<Integer> categoriesId);
+    List<Product> getAllProduct();
 
 }

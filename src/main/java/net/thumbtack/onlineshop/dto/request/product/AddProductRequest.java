@@ -8,28 +8,26 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
-public class ProductEditRequest {
+public class AddProductRequest {
     @NotNull(message = ValidationError.PRODUCT_NAME_CANNOT_BE_NULL)
     private String name;
 
     @Positive(message = ValidationError.PRODUCT_PRICE_MUST_GREAT_ZERO)
-    private Integer price;
+    private int price;
 
     @PositiveOrZero(message = ValidationError.PRODUCT_COUNT_CANNOT_BE_LESS_ZERO)
-    private Integer count;
+    private int count;
 
     private List<Integer> categories;
 
-
-    public ProductEditRequest() {
-    }
-
-
-    public ProductEditRequest(String name, Integer price, Integer count, List<Integer> categories) {
+    public AddProductRequest(String name, int price, int count, List<Integer> categories) {
         this.name = name;
         this.price = price;
         this.count = count;
         this.categories = categories;
+    }
+
+    public AddProductRequest() {
     }
 
     public String getName() {
@@ -40,19 +38,19 @@ public class ProductEditRequest {
         this.name = name;
     }
 
-    public Integer getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(Integer price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 
-    public Integer getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(Integer count) {
+    public void setCount(int count) {
         this.count = count;
     }
 

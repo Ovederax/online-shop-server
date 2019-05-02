@@ -21,7 +21,7 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getBasketMapper(sqlSession).addProductToBasket(client, item);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't addProductToBasket in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -36,8 +36,8 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
         LOGGER.debug("BasketDao getProductsInBasket");
         try(SqlSession sqlSession = getSession()) {
             try {
-                return getBasketMapper(sqlSession).getProductsInBasket();
-            } catch (RuntimeException ex) {
+                return getBasketMapper(sqlSession).getProductsInBasket(client);
+            } catch (Exception ex) {
                 LOGGER.info("Can't getProductsInBasket in DB ", ex);
                 throw ex;
             }
@@ -50,24 +50,8 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getBasketMapper(sqlSession).deleteItemFromBasketById(id);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't deleteItemFromBasketById in DB ", ex);
-                sqlSession.rollback();
-                throw ex;
-            }
-            sqlSession.commit();
-        }
-    }
-    // TODO Скорей всего можно удалить id из basket, оставив productId как первичный
-    // (если не допускается наличие нескольких записей связанный с продуктом с различным заказанным количеством)
-    @Override
-    public void deleteItemFromBasketByProductId(int id) {
-        LOGGER.debug("BasketDao deleteItemFromBasketByProductId");
-        try(SqlSession sqlSession = getSession()) {
-            try {
-                getBasketMapper(sqlSession).deleteItemFromBasketByProductId(id);
-            } catch (RuntimeException ex) {
-                LOGGER.info("Can't deleteItemFromBasketByProductId in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
             }
@@ -84,7 +68,7 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
                     return new ArrayList<>();
                 }
                 return getBasketMapper(sqlSession).getProductsInBasketByRangeId(productsId);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't getProductInBasketInRange in DB ", ex);
                 throw ex;
             }
@@ -97,7 +81,7 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getBasketMapper(sqlSession).updateProductCount(item);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't updateProductCount in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
@@ -112,7 +96,7 @@ public class BasketDaoImpl   extends BaseDaoImpl implements BasketDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getBasketMapper(sqlSession).getProductInBasket(id);
-            } catch (RuntimeException ex) {
+            } catch (Exception ex) {
                 LOGGER.info("Can't getProductInBasket in DB ", ex);
                 throw ex;
             }

@@ -1,21 +1,21 @@
-package net.thumbtack.onlineshop.dto.response.cathegory;
+package net.thumbtack.onlineshop.dto.response.category;
 
 import java.util.Objects;
 
-public class CategoryEditResponse {
+public class EditCategoryResponse {
     private int id;
     private String name;
     private int parentId;
     private String parentName;
 
-    public CategoryEditResponse(int id, String name, int parentId, String parentName) {
+    public EditCategoryResponse(int id, String name, int parentId, String parentName) {
         this.id = id;
         this.name = name;
         this.parentId = parentId;
         this.parentName = parentName;
     }
 
-    public CategoryEditResponse() {
+    public EditCategoryResponse() {
     }
 
 
@@ -52,8 +52,8 @@ public class CategoryEditResponse {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CategoryEditResponse)) return false;
-        CategoryEditResponse that = (CategoryEditResponse) o;
+        if (!(o instanceof EditCategoryResponse)) return false;
+        EditCategoryResponse that = (EditCategoryResponse) o;
         return getId() == that.getId() &&
                 getParentId() == that.getParentId() &&
                 Objects.equals(getName(), that.getName()) &&

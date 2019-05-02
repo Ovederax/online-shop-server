@@ -38,6 +38,15 @@ public interface ProductMapper {
     })
     Product findProductById(int id);
 
+
+    @Select("SELECT * FROM products")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "categories", column = "id", javaType = List.class,
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findCategoriesByProductId", fetchType = FetchType.LAZY)),
+    })
+    List<Product> getAllProduct();
+
     @Select("SELECT categories.* FROM categories JOIN products_categories ON categories.id=categoryId WHERE productId=#{productId}")
     List<Category> findCategoriesByProductId(int productId);
 
@@ -141,5 +150,14 @@ public interface ProductMapper {
 
     @Delete("DELETE FROM purchases")
     void deleteAllPurchases();
+
+
+    @Select("SELECT * FROM purchases WHERE clientId=#{clientId}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "actual", column = "actualId", javaType = Product.class,
+                one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductById", fetchType = FetchType.LAZY))
+    })
+    List<Purchase> findPurchasesByClientId(int clientId);
 
 }

@@ -14,13 +14,13 @@ public interface BasketMapper {
     void addProductToBasket(@Param("client") Client client, @Param("item") BasketItem item);
 
 
-    @Select("SELECT * FROM baskets")
+    @Select("SELECT * FROM baskets WHERE userId=#{id}")
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "product", column = "productId", javaType = Product.class,
                     one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductById", fetchType = FetchType.EAGER))
     })
-    List<BasketItem> getProductsInBasket();
+    List<BasketItem> getProductsInBasket(Client client);
 
     @Delete("DELETE FROM baskets WHERE id=#{id}")
     void deleteItemFromBasketById(int id);
