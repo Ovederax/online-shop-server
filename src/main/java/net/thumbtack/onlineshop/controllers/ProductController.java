@@ -31,9 +31,11 @@ public class ProductController {
 
     @PostMapping(path="/api/products", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
+    // REVU create static final String COOKIE_NAME
     public ProductResponse addProduct(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
                                       @Valid @RequestBody AddProductRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
+        // REVU setStatus is unnecessary and HttpServletResponse as parameter is unnecessary too
+    	response.setStatus(HttpServletResponse.SC_OK);
         return productService.addProduct(dto, cookie.getValue());
     }
 

@@ -105,6 +105,7 @@ public class BasketService extends ServiceBase{
         List<Purchase> purchases = new ArrayList<>();
 
         int amount = 0;
+        // REVU for (BasketItem item : basketItems)
         for(int i=0; i<basketItems.size(); ++i) {
             Product product = basketItems.get(i).getProduct();
             if(product.getIsDeleted() == 1) {
@@ -126,11 +127,15 @@ public class BasketService extends ServiceBase{
         }
 
         List<BuyProductResponse> successList = new ArrayList<>();
+        // REVU you buy every product independently
+        // but you must do a transaction for all list
         for (Purchase it : purchases) {
             Product product = it.getActual();
             try {
                 int newDeposit = client.getMoney() - it.getBuyCount() * it.getBuyPrice();
                 int newCount = product.getCounter() - it.getBuyCount();
+                // REVU you buy every product independently
+                // but you must do a transaction for all list
                 productDao.buyProductFromBasket(it, client, newDeposit, newCount);
                 successList.add(new BuyProductResponse(product.getId(), product.getName(), product.getPrice(), it.getBuyCount()));
             } catch (ServerException ex) {

@@ -36,6 +36,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 @ControllerAdvice
+// REVU rename. It is not controller, it is GlobalExceptionHandler
 public class ExceptionController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingRequestCookieException.class)
@@ -60,8 +61,10 @@ public class ExceptionController {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ErrorResponse handleValidationError(HttpServletRequest req, ConstraintViolationException ex) {
+    	// REVU List<ErrorContent> list = new ArrayList<>();
         ArrayList<ErrorContent> list = new ArrayList<>();
         final String errorCode = ErrorCode.VALIDATE_ERROR.getErrorCode();
+        // REVU ConstraintViolation is a raw type. References to generic type ConstraintViolation<T> should be parameterized
         for (ConstraintViolation it : ex.getConstraintViolations()) {
             list.add( new ErrorContent(errorCode, "", it.getMessage()) );
         }

@@ -123,6 +123,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
+    // REVU rename. Do not understand why reloading is necessary
     public void reloadMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException {
         LOGGER.debug("UserDAO reloadMoneyDeposit");
         try(SqlSession sqlSession = getSession()) {

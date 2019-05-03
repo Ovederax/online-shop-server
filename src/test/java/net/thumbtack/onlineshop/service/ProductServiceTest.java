@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+// REVU write or delete
 public class ProductServiceTest {
 
     @Test

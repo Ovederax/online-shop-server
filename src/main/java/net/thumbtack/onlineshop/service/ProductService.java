@@ -35,6 +35,7 @@ public class ProductService extends ServiceBase{
     }
 
     private List<Integer> getCategoriesListId(List<Category> categories) {
+    	// REVU can you rewrite in functional style (use .map) ?
         List<Integer> list = new ArrayList<>();
         if(categories == null) {
             return list;
@@ -71,6 +72,7 @@ public class ProductService extends ServiceBase{
     }
 
     public GetProductResponse getProduct(int id, String token) throws ServerException {
+    	// REVU The value of the local variable user is not used
     	User user = userDao.getUserByToken(token);
         Product product = productDao.getProductById(id);
         return new GetProductResponse(product.getId(), product.getName(),
@@ -100,6 +102,7 @@ public class ProductService extends ServiceBase{
             sortOrder = ProductSortOrder.fromString(order);
         }
 
+        // REVU switch
         if (sortOrder == ProductSortOrder.PRODUCT) {
             List<GetProductResponse> list = new ArrayList<>();
             List<Product> products = productDao.getProductListOrderProduct(categoriesId);
@@ -127,8 +130,10 @@ public class ProductService extends ServiceBase{
         }
     }
 
+    // REVU move private methods to the begin or end of class
     private void checkProductParameters(Product product, String name, int price, int count) throws ServerException {
         ErrorCode error = ErrorCode.NO_BUY_IF_PRODUCT_IS_CHANGE;
+        // REVU if 2 or more fields changed ?
         if(!product.getName().equals(name)) {
             error.setField("name");
             throw new ServerException(error);

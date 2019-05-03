@@ -28,7 +28,8 @@ abstract class ServiceBase {
     }
 
     List<String> getCategoriesListNames(Product product) {
-        List<String> list = new ArrayList<>();
+    	// REVU can you rewrite in functional style (use .map) ?
+       List<String> list = new ArrayList<>();
         for(Category it : product.getCategories()) {
             list.add(it.getName());
         }

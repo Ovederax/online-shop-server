@@ -32,6 +32,10 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
                 if(categories != null) {
                     mapper.insertProductCategories(product, categories);
                 }
+                // REVU never catch Exception, catch subclass
+                // You must be sure that the problem is really duplicate name
+                // exception can be thrown by another reason
+                // see MySQLIntegrityConstraintViolationException
             } catch (Exception ex) {
                 LOGGER.info("Can't addProduct {} in DB ", product, ex);
                 sqlSession.rollback();
@@ -48,8 +52,10 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getProductMapper(sqlSession).findProductById(id);
+                // REVU never catch Exception, catch subclass
             } catch (Exception ex) {
                 LOGGER.info("Can't getProductById {} in DB ", id, ex);
+                // REVU throw your own exception
                 throw ex;
             }
         }
@@ -71,6 +77,7 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
                         //mapper.insertProductCategories(product, categories);
                     }
                 }
+                // REVU never catch Exception, catch subclass
             } catch (Exception ex) {
                 LOGGER.info("Can't updateProduct {} in DB ", product, ex);
                 sqlSession.rollback();

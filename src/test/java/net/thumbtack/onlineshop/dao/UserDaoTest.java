@@ -8,7 +8,7 @@ import net.thumbtack.onlineshop.service.UserService;
 import org.junit.Before;
 import org.junit.Test;
 
-
+// REVU delete
 public class UserDaoTest {
 
 }
