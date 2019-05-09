@@ -24,11 +24,6 @@ public class PhoneValidator implements ConstraintValidator<PhoneFormat, String> 
             LOGGER.debug("Validate phone is null");
             return true;                            // use @NotNull if need
         }
-        //example
-        // 89136667890
-        // 8-913-666-78-90
-        // +7-913-666-78-90
-        // 8-9-1-3-6-6-6-7-8-9-0
         return phone.matches("(8|\\+7)(-?\\d){10}");
     }
 }

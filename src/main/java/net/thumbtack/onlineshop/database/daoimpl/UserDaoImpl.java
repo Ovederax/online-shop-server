@@ -1,5 +1,6 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.database.mybatis.mappers.DepositMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,10 +32,14 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
             try {
                 getUserMapper(sqlSession).insertUser(admin);
                 getUserMapper(sqlSession).insertAdmin(admin);
-            } catch (Exception ex) {
+            } catch (MySQLIntegrityConstraintViolationException ex) {
                 LOGGER.info("Can't insertAdmin administrator in DB ", ex);
                 sqlSession.rollback();
                 throw new ServerException(ErrorCode.LOGIN_ALREADY_EXISTS);
+            } catch (SQLException ex) {
+                LOGGER.info("Can't insertAdmin administrator in DB ", ex);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_ADD_ADMINISTRATOR);
             }
             sqlSession.commit();
         }
@@ -49,10 +55,14 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.insertUser(client);
                 userMapper.insertClient(client);
                 depositMapper.insertDeposit(new Deposit(client.getId(), 0));
-            } catch (Exception ex) {
+            } catch (MySQLIntegrityConstraintViolationException ex) {
                 LOGGER.info("Can't insertClient client in DB ", ex);
                 sqlSession.rollback();
                 throw new ServerException(ErrorCode.LOGIN_ALREADY_EXISTS);
+            }  catch (SQLException ex) {
+                LOGGER.info("Can't insertClient client in DB ", ex);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_ADD_CLIENT);
             }
             sqlSession.commit();
         }
@@ -65,7 +75,7 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getUserMapper(sqlSession).login(user.getId(), token.toString());
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't user login in DB ", ex);
                 sqlSession.rollback();
                 throw new ServerException(ErrorCode.USER_IS_ACTIVE);
@@ -75,20 +85,20 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
     }
 
     @Override
-    public List<Client> getAllClients() {
+    public List<Client> getAllClients() throws ServerException {
         LOGGER.debug("UserDAO getAllClients");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findAllClients();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getAllClients in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENTS);
             }
         }
     }
 
     @Override
-    public void clearData() {
+    public void clearData() throws ServerException {
         LOGGER.debug("UserDAO clearData");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -97,17 +107,17 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.deleteAllAdministrators();
                 userMapper.deleteAllLoginRecords();
                 userMapper.deleteAllUsers();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't clearData DB", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_CLEAR_DATABASE);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public List<Client> getClientsById(List<Integer> clients) {
+    public List<Client> getClientsById(List<Integer> clients) throws ServerException {
         LOGGER.debug("UserDAO getClientsById");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -115,26 +125,25 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                     return new ArrayList<>();
                 }
                 return getUserMapper(sqlSession).getClientsById(clients);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getClientsById DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENT);
             }
         }
     }
 
     @Override
-    // REVU rename. Do not understand why reloading is necessary
-    public void reloadMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException {
-        LOGGER.debug("UserDAO reloadMoneyDeposit");
+    public void setMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException {
+        LOGGER.debug("UserDAO setMoneyDeposit");
         try(SqlSession sqlSession = getSession()) {
             try {
                 if(getUserMapper(sqlSession).updateMoneyDeposit(client, newMoneyDeposit) != 1) {
                     throw new ServerException(ErrorCode.BAD_UPDATE_DEPOSIT_IT_IS_CHANGE);
                 }
-            } catch (Exception ex) {
-                LOGGER.info("Can't reloadMoneyDeposit DB ", ex);
+            } catch (SQLException ex) {
+                LOGGER.info("Can't setMoneyDeposit DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_UPDATE_MONEY_DEPOSIT);
             }
             sqlSession.commit();
         }
@@ -148,10 +157,10 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
             try {
                 UserMapper userMapper = getUserMapper(sqlSession);
                 editCount = userMapper.logout(token);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't user logout DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_USER_LOGOUT);
             }
             sqlSession.commit();
         }
@@ -170,48 +179,48 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                     outList.add(new ClientInfo(it.getId(), it.getFirstname(), it.getLastname(), it.getPatronymic(), it.getEmail(), it.getAddress(), it.getPhone()));
                 }
                 return outList;
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getClientsInfo in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENT_INFO);
             }
         }
     }
 
     @Override
-    public Administrator getAdministratorById(int id) {
+    public Administrator getAdministratorById(int id) throws ServerException {
         LOGGER.debug("UserDAO getAdministratorById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findAdministratorsById(id);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getAdministratorById in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_ADMINISTRATOR);
             }
         }
     }
 
     @Override
-    public User getUserByLogin(String login) {
+    public User getUserByLogin(String login) throws ServerException {
         LOGGER.debug("UserDAO getUserByLogin");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findUserByLogin(login);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getUserByLogin in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENT);
             }
         }
     }
 
     @Override
-    public Client getClientById(int id) {
+    public Client getClientById(int id) throws ServerException {
         LOGGER.debug("UserDAO getClientById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getUserMapper(sqlSession).findClientById(id);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getClientById in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENT);
             }
         }
     }
@@ -226,9 +235,9 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                     throw new ServerException(ErrorCode.UUID_NOT_FOUND);
                 }
                 return user;
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getUserByToken in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CLIENT);
             }
         }
     }
@@ -242,10 +251,10 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.updateUser(admin);
                 userMapper.updateAdministrator(admin);
                 sqlSession.commit();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't editAdministrator in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_UPDATE_ADMINISTRATOR);
             }
         }
     }
@@ -259,10 +268,10 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
                 userMapper.updateUser(client);
                 userMapper.updateClient(client);
                 sqlSession.commit();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 sqlSession.rollback();
                 LOGGER.info("Can't editClient in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_UPDATE_CLIENT);
             }
         }
     }

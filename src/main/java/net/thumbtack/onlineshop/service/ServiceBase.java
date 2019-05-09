@@ -7,6 +7,7 @@ import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 abstract class ServiceBase {
 
@@ -28,11 +29,6 @@ abstract class ServiceBase {
     }
 
     List<String> getCategoriesListNames(Product product) {
-    	// REVU can you rewrite in functional style (use .map) ?
-       List<String> list = new ArrayList<>();
-        for(Category it : product.getCategories()) {
-            list.add(it.getName());
-        }
-        return list;
+        return product.getCategories().stream().map(Category::getName).collect(Collectors.toList());
     }
 }

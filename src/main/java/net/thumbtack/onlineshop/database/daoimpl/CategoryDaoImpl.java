@@ -1,5 +1,6 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import net.thumbtack.onlineshop.database.dao.CategoryDao;
 import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -23,87 +25,90 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).insertCategory(category);
-            } catch (Exception ex) {
+            } catch (MySQLIntegrityConstraintViolationException ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
                 sqlSession.rollback();
-                ErrorCode code = ErrorCode.CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME;
-                throw new ServerException(code.getErrorCode(), code.getMessage(), code.getField());
+                throw new ServerException(ErrorCode.CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME);
+            } catch (SQLException ex) {
+                LOGGER.info("Can't addCategory in DB ", ex);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_ADD_CATEGORY);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public Category getCategory(int id) {
+    public Category getCategory(int id) throws ServerException {
         LOGGER.debug("CategoryDao addCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).findCategoryById(id);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't addCategory in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CATEGORY);
             }
         }
     }
 
     @Override
-    public void updateCategory(int id, String name, Integer parentId) {
+    public void updateCategory(int id, String name, Integer parentId) throws ServerException {
         LOGGER.debug("CategoryDao updateCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).updateCategoryById(id, name, parentId);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't updateCategory in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_UPDATE_CATEGORY);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public void deleteCategory(int id) {
+    public void deleteCategory(int id) throws ServerException {
         LOGGER.debug("CategoryDao deleteCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 getCategoryMapper(sqlSession).deleteCategoryById(id);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't deleteCategory in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_DELETE_CATEGORY);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public List<Category> getParentsCategories() {
+    public List<Category> getParentsCategories() throws ServerException {
         LOGGER.debug("CategoryDao getParentsCategories");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).getParentsCategories();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getParentsCategories in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CATEGORY);
             }
         }
     }
 
     @Override
-    public Category getCategoryById(int id) {
+    public Category getCategoryById(int id) throws ServerException {
         LOGGER.debug("CategoryDao getCategoryById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getCategoryMapper(sqlSession).findCategoryById(id);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getCategoryById in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CATEGORY);
             }
         }
     }
 
     @Override
-    public List<Category> getCategoriesById(List<Integer> categories) {
+    public List<Category> getCategoriesById(List<Integer> categories) throws ServerException {
         LOGGER.debug("CategoryDao getCategoriesById");
         try(SqlSession sqlSession = getSession()) {
             try {
@@ -115,9 +120,9 @@ public class CategoryDaoImpl  extends BaseDaoImpl implements CategoryDao {
                     joiner.add(it.toString());
                 }
                 return getCategoryMapper(sqlSession).findCategoriesById(joiner.toString());
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getCategoriesById in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_CATEGORY);
             }
         }
     }

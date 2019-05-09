@@ -18,10 +18,6 @@ public class UserService extends ServiceBase {
     @Autowired
     private UserDao userDao;
 
-    private String convertPhoneFormat(String phone) {
-        return phone.replaceAll("-", "");
-    }
-
     public void registerAdministrator(AdministratorRegisterRequest req) throws ServerException {
         Administrator administrator = new Administrator(req.getFirstName(), req.getLastName(), req.getPatronymic(), req.getPosition(), req.getLogin(), req.getPassword());
         userDao.registerAdministrator(administrator);
@@ -51,16 +47,6 @@ public class UserService extends ServiceBase {
         if(userDao.logout(token) != 1) {
             throw new ServerException(ErrorCode.UUID_NOT_FOUND);
         }
-    }
-
-    private UserInfoResponse getUserInfoByUserId(int userId) {
-        Administrator administrator = userDao.getAdministratorById(userId);
-        if(administrator != null) {
-            return new AdministratorInfoResponse(administrator.getId(), administrator.getFirstname(), administrator.getLastname(), administrator.getPatronymic(), administrator.getPosition());
-        }
-        Client client = userDao.getClientById(userId); // if (client == null) -> internal server error
-        return new ClientInfoResponse(client.getId(), client.getFirstname(), client.getLastname(),
-                client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone(), client.getMoney());
     }
 
     public UserInfoResponse getUserInfo(String token) throws ServerException {
@@ -103,7 +89,7 @@ public class UserService extends ServiceBase {
     public UserInfoResponse addMoneyDeposit(DepositMoneyRequest dto, String token) throws ServerException {
         Client client = getClientByToken(userDao, token);
         int newMoneyDeposit = client.getMoney() + Integer.parseInt(dto.getDeposit());
-        userDao.reloadMoneyDeposit(client, newMoneyDeposit);
+        userDao.setMoneyDeposit(client, newMoneyDeposit);
         return getUserInfo(token);
     }
 
@@ -111,5 +97,19 @@ public class UserService extends ServiceBase {
         Client client = getClientByToken(userDao, token);
         return new ClientInfoResponse(client.getId(), client.getFirstname(), client.getLastname(),
                 client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone(), client.getMoney());
+    }
+
+    private UserInfoResponse getUserInfoByUserId(int userId) throws ServerException {
+        Administrator administrator = userDao.getAdministratorById(userId);
+        if(administrator != null) {
+            return new AdministratorInfoResponse(administrator.getId(), administrator.getFirstname(), administrator.getLastname(), administrator.getPatronymic(), administrator.getPosition());
+        }
+        Client client = userDao.getClientById(userId); // if (client == null) -> internal server error
+        return new ClientInfoResponse(client.getId(), client.getFirstname(), client.getLastname(),
+                client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone(), client.getMoney());
+    }
+
+    private String convertPhoneFormat(String phone) {
+        return phone.replaceAll("-", "");
     }
 }

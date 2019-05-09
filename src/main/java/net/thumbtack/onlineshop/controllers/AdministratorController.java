@@ -16,6 +16,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+import static net.thumbtack.onlineshop.config.ServerConstants.COOKIE_NAME;
+
 @Validated
 @RestController
 public class AdministratorController {
@@ -28,7 +30,7 @@ public class AdministratorController {
 
     @GetMapping(path="/api/purchases", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public SummaryListResponse getSummaryList(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public SummaryListResponse getSummaryList(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                               @RequestParam (value = "allInfo", required = false, defaultValue = "false") Boolean allInfo, // all or only summary
                                               @RequestParam (value = "categories", required = false) List<Integer> categories,
                                               @RequestParam (value = "products", required = false)   List<Integer> products,
@@ -36,21 +38,18 @@ public class AdministratorController {
                                               @RequestParam (value = "offset", required = false, defaultValue = "1") Integer offset,
                                               @RequestParam(value = "limit", required = false, defaultValue = "100") Integer limit,
                                               HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return service.getSummaryList( cookie.getValue(), allInfo, categories, products, clients, offset, limit );
     }
 
     @GetMapping(path="/api/settings", produces = MediaType.APPLICATION_JSON_VALUE )
-    public AvailableSettingResponse getSettings(@CookieValue(value = "JAVASESSIONID", required = false) Cookie cookie, HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_OK);
+    public AvailableSettingResponse getSettings(@CookieValue(value = COOKIE_NAME, required = false) Cookie cookie, HttpServletResponse response) {
         String cookieValue = cookie != null? cookie.getValue() : null;
         return service.getSettings(cookieValue);
     }
 
 
     @GetMapping(path="/api/debug/clear" )
-    public void clearDataBase(HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_OK);
+    public void clearDataBase(HttpServletResponse response) throws ServerException {
         service.clearDataBase();
     }
 

@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import javax.servlet.http.Cookie;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -97,11 +98,15 @@ public class CommonRestUtils {
 
     public int addCategory(Category category, String cookie, TestRestTemplate rest) throws Exception {
         Integer parentId = 0;
+        AddCategoryResponse respExpected;
         if(category.getParent() != null) {
             parentId = category.getParent().getId();
+            respExpected = new AddCategoryResponse( 0, category.getName(), parentId, category.getParent().getName());
+        } else {
+            respExpected = new AddCategoryResponse( 0, category.getName(), 0, null);
         }
         AddCategoryRequest req = new AddCategoryRequest(category.getName(), parentId);
-        AddCategoryResponse respExpected = new AddCategoryResponse( 0, category.getName(), 0, null);
+
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -127,7 +132,11 @@ public class CommonRestUtils {
         ResponseEntity<ProductResponse> res = rest.exchange(URL+"/api/products", HttpMethod.POST, new HttpEntity<>(req, headers), ProductResponse.class);
         assertEquals(res.getStatusCode(), HttpStatus.OK);
         ProductResponse actual = res.getBody();
-        assertEquals( new ProductResponse(actual.getId(), product.getName(), product.getPrice(), product.getCounter(), categories), actual);
+        if (categories != null) {
+            assertEquals( new ProductResponse(actual.getId(), product.getName(), product.getPrice(), product.getCounter(), categories), actual);
+        } else {
+            assertEquals( new ProductResponse(actual.getId(), product.getName(), product.getPrice(), product.getCounter(), new ArrayList<>()), actual);
+        }
         product.setId(actual.getId());
         return actual.getId();
     }
@@ -147,7 +156,7 @@ public class CommonRestUtils {
         ));
 
         for(Category it: categories) {
-            it.setId(addCategory(it, cookie, rest));
+            addCategory(it, cookie, rest);
         }
 
         for(Product it: products) {

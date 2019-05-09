@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public class BuyProductFromBasketRequest {
     @Min(value = 1, message = ValidationError.ID_MUST_GREAT_ZERO)
-    private int id;
+    private int id;     // exactly id item in basket, not simple product!
 
     @NotNull(message = ValidationError.PRODUCT_NAME_CANNOT_BE_NULL)
     private String name;
@@ -17,10 +17,9 @@ public class BuyProductFromBasketRequest {
     @Min(value = 0, message = ValidationError.PRODUCT_PRICE_MUST_GREAT_ZERO)
     private int price;
 
-    @PositiveOrZero(message = ValidationError.PRODUCT_COUNT_CANNOT_BE_LESS_ZERO)
-    private int count;
+    private Integer count;
 
-    public BuyProductFromBasketRequest(int id, String name, int price, int count) {
+    public BuyProductFromBasketRequest(int id, String name, int price, Integer count) {
         this.id = id;
         this.name = name;
         this.price = price;
@@ -54,11 +53,11 @@ public class BuyProductFromBasketRequest {
         this.price = price;
     }
 
-    public int getCount() {
+    public Integer getCount() {
         return count;
     }
 
-    public void setCount(int count) {
+    public void setCount(Integer count) {
         this.count = count;
     }
 

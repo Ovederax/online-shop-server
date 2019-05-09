@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService extends ServiceBase{
@@ -32,18 +33,6 @@ public class ProductService extends ServiceBase{
         this.productDao = productDao;
         this.userDao = userDao;
         this.categoryDao = categoryDao;
-    }
-
-    private List<Integer> getCategoriesListId(List<Category> categories) {
-    	// REVU can you rewrite in functional style (use .map) ?
-        List<Integer> list = new ArrayList<>();
-        if(categories == null) {
-            return list;
-        }
-        for(Category it : categories) {
-            list.add(it.getId());
-        }
-        return list;
     }
 
     public ProductResponse addProduct(AddProductRequest dto, String token) throws ServerException {
@@ -72,21 +61,12 @@ public class ProductService extends ServiceBase{
     }
 
     public GetProductResponse getProduct(int id, String token) throws ServerException {
-    	// REVU The value of the local variable user is not used
-    	User user = userDao.getUserByToken(token);
+    	userDao.getUserByToken(token);
         Product product = productDao.getProductById(id);
         return new GetProductResponse(product.getId(), product.getName(),
                 product.getPrice(), product.getCounter(), getCategoriesListNames(product));
     }
 
-    private List<GetProductResponse> getProductListWithoutCategory() {
-        List<GetProductResponse> list = new ArrayList<>();
-        List<Product> products = productDao.getProductListOrderProductNoCategory();
-        for(Product it : products) {
-            list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), new ArrayList<>()));
-        }
-        return list;
-    }
     public List<GetProductResponse> getProductsList(List<Integer> categoriesId, String order, String token) throws ServerException, IOException {
         userDao.getUserByToken(token); // check user exist
 
@@ -102,52 +82,35 @@ public class ProductService extends ServiceBase{
             sortOrder = ProductSortOrder.fromString(order);
         }
 
-        // REVU switch
-        if (sortOrder == ProductSortOrder.PRODUCT) {
-            List<GetProductResponse> list = new ArrayList<>();
-            List<Product> products = productDao.getProductListOrderProduct(categoriesId);
-            for (Product it : products) {
-                list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), getCategoriesListNames(it)));
-            }
-            return list;
-        } else if(sortOrder == ProductSortOrder.CATEGORY) {
-            List<GetProductResponse> list;
-            if (categoriesId == null) { // так надо
-                list = getProductListWithoutCategory();
-            } else {
-                list = new ArrayList<>();
-            }
-
-            List<Category> categories = productDao.getProductListOrderCategory(categoriesId);
-            for (Category category : categories) {
-                for (Product it : category.getProducts()) {
-                    list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), Collections.singletonList(category.getName())));
+        switch (sortOrder) {
+            case PRODUCT: {
+                List<GetProductResponse> list = new ArrayList<>();
+                List<Product> products = productDao.getProductListOrderProduct(categoriesId);
+                for (Product it : products) {
+                    list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), getCategoriesListNames(it)));
                 }
+                return list;
             }
-            return list;
-        } else {
-            throw new ServerException(ErrorCode.BAD_ORDER_FOR_GET_PROGUCT_LIST);
+            case CATEGORY: {
+                List<GetProductResponse> list;
+                if (categoriesId == null) { // так надо
+                    list = getProductListWithoutCategory();
+                } else {
+                    list = new ArrayList<>();
+                }
+
+                List<Category> categories = productDao.getProductListOrderCategory(categoriesId);
+                for (Category category : categories) {
+                    for (Product it : category.getProducts()) {
+                        list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), Collections.singletonList(category.getName())));
+                    }
+                }
+                return list;
+            }
+            default:
+                throw new ServerException(ErrorCode.BAD_ORDER_FOR_GET_PRODUCT_LIST);
         }
     }
-
-    // REVU move private methods to the begin or end of class
-    private void checkProductParameters(Product product, String name, int price, int count) throws ServerException {
-        ErrorCode error = ErrorCode.NO_BUY_IF_PRODUCT_IS_CHANGE;
-        // REVU if 2 or more fields changed ?
-        if(!product.getName().equals(name)) {
-            error.setField("name");
-            throw new ServerException(error);
-        }
-        if(product.getPrice() != price) {
-            error.setField("price");
-            throw new ServerException(error);
-        }
-        if(product.getCounter() < count) {
-            error.setField("count");
-            throw new ServerException(ErrorCode.BUY_COUNT_PRODUCT_LESS_NEED_COUNT);
-        }
-    }
-
     public BuyProductResponse buyProduct(BuyProductRequest dto, String token) throws ServerException {
         Client client = getClientByToken(userDao, token);
         Product product = productDao.getProductById(dto.getId());
@@ -165,5 +128,37 @@ public class ProductService extends ServiceBase{
         checkProductParameters(product, dto.getName(), dto.getPrice(), count);
         int id = productDao.buyProduct(new Purchase(product, dto.getName(), count, product.getPrice()), client, newMoneyDeposit, newProductCount);
         return new BuyProductResponse(id, dto.getName(), dto.getPrice(), count);
+    }
+
+    private void checkProductParameters(Product product, String name, int price, int count) throws ServerException {
+        List<ErrorCode> errorCodes = new ArrayList<>();
+        if(!product.getName().equals(name)) {
+            errorCodes.add(ErrorCode.NO_BUY_PRODUCT_IF_NAME_IS_CHANGE);
+        }
+        if(product.getPrice() != price) {
+            errorCodes.add(ErrorCode.NO_BUY_PRODUCT_IF_PRICE_IS_CHANGE);
+        }
+        if(product.getCounter() < count) {
+            errorCodes.add(ErrorCode.NO_BUY_PRODUCT_IF_COUNT_IS_CHANGE);
+        }
+        if(errorCodes.size() != 0) {
+            throw ServerException.instanceFromErrorCodeList(errorCodes);
+        }
+    }
+
+    private List<Integer> getCategoriesListId(List<Category> categories) {
+        if(categories == null) {
+            return new ArrayList<>();
+        }
+        return categories.stream().map(Category::getId).collect(Collectors.toList());
+    }
+
+    private List<GetProductResponse> getProductListWithoutCategory() throws ServerException {
+        List<GetProductResponse> list = new ArrayList<>();
+        List<Product> products = productDao.getProductListOrderProductNoCategory();
+        for(Product it : products) {
+            list.add(new GetProductResponse(it.getId(), it.getName(), it.getPrice(), it.getCounter(), new ArrayList<>()));
+        }
+        return list;
     }
 }

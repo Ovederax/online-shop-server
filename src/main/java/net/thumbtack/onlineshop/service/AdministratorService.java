@@ -51,7 +51,7 @@ public class AdministratorService extends ServiceBase{
     }
 
     //Удаляет все записи в БД. Метод предназначен для отладки, в production должен быть отключен.
-    public void clearDataBase() {
+    public void clearDataBase() throws ServerException {
         commonDao.clear();
     }
 

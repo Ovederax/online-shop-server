@@ -52,8 +52,8 @@ public class UserControllerTest {
 
     @Test
     public void registerAdministratorTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"имя", "фамилия", null, "pos");
 
         ResponseEntity<AdministratorInfoResponse> res = restTemplate.exchange(URL+"/api/admins", HttpMethod.POST, new HttpEntity<>(req, headers), AdministratorInfoResponse.class);
         assertEquals(res.getStatusCode(), HttpStatus.OK);
@@ -116,8 +116,8 @@ public class UserControllerTest {
 
     @Test
     public void clientsInfoTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0, "admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0, "имя", "фамилия", null, "pos");
 
         ResponseEntity<AdministratorInfoResponse> res = restTemplate.exchange(URL+"/api/admins", HttpMethod.POST, new HttpEntity<>(req, headers), AdministratorInfoResponse.class);
         assertEquals(res.getStatusCode(), HttpStatus.OK);
@@ -159,8 +159,8 @@ public class UserControllerTest {
 
     @Test
     public void updateAdministratorProfileTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"имя", "фамилия", null, "pos");
 
         ResponseEntity<AdministratorInfoResponse> res = restTemplate.exchange(URL+"/api/admins", HttpMethod.POST, new HttpEntity<>(req, headers), AdministratorInfoResponse.class);
         assertEquals(res.getStatusCode(), HttpStatus.OK);
@@ -174,8 +174,8 @@ public class UserControllerTest {
         HttpHeaders adminHeaders = new HttpHeaders();
         adminHeaders.setContentType(MediaType.APPLICATION_JSON);
         adminHeaders.add("Cookie", cookie);
-        AdministratorEditRequest admEditReq = new AdministratorEditRequest("adm", "adm", "patron", "pos2", "1234", "19999");
-        respExpected = new AdministratorInfoResponse(0,"adm", "adm", "patron", "pos2");
+        AdministratorEditRequest admEditReq = new AdministratorEditRequest("Степан", "Федоров", "иванович", "pos2", "1234", "19999");
+        respExpected = new AdministratorInfoResponse(0,"Степан", "Федоров", "иванович", "pos2");
         ResponseEntity<String> res2 = restTemplate.exchange(URL+"/api/admins", HttpMethod.PUT, new HttpEntity<>(admEditReq, adminHeaders), String.class);
         actual = mapper.readValue(res2.getBody(), AdministratorInfoResponse.class);
         respExpected.setId(actual.getId());

@@ -10,7 +10,7 @@ public enum ProductSortOrder {
         try {
             return valueOf(order.toUpperCase());
         } catch(IllegalArgumentException ex) {
-            throw new ServerException(ErrorCode.BAD_ORDER_FOR_GET_PROGUCT_LIST);
+            throw new ServerException(ErrorCode.BAD_ORDER_FOR_GET_PRODUCT_LIST);
         }
     }
 }

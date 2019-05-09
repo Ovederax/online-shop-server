@@ -45,12 +45,12 @@ public class UserControllerTest {
 
     @Test
     public void registerAdministratorTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"имя", "фамилия", null, "pos");
 
         ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("admName"))
+                .andExpect(jsonPath("firstName").value("имя"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -117,12 +117,12 @@ public class UserControllerTest {
 
     @Test
     public void clientsInfoTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0, "admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0, "имя", "фамилия", null, "pos");
 
         ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("admName"))
+                .andExpect(jsonPath("firstName").value("имя"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -162,12 +162,12 @@ public class UserControllerTest {
 
     @Test
     public void updateAdministratorProfileTest() throws Exception {
-        AdministratorRegisterRequest req = new AdministratorRegisterRequest("admName", "admLast", null, "pos", "admin", "1234");
-        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"admName", "admLast", null, "pos");
+        AdministratorRegisterRequest req = new AdministratorRegisterRequest("имя", "фамилия", null, "pos", "admin", "1234");
+        AdministratorInfoResponse respExpected = new AdministratorInfoResponse(0,"имя", "фамилия", null, "pos");
 
         ResultActions res = mvc.perform(post("/api/admins").contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(req)));
         res.andExpect(status().isOk())
-                .andExpect(jsonPath("firstName").value("admName"))
+                .andExpect(jsonPath("firstName").value("имя"))
                 .andExpect(cookie().exists("JAVASESSIONID"));
         MvcResult mvcRes = res.andReturn();
         String content = mvcRes.getResponse().getContentAsString();
@@ -178,8 +178,8 @@ public class UserControllerTest {
 
         assertEquals(respExpected, actual);
 
-        AdministratorEditRequest admEditReq = new AdministratorEditRequest("adm", "adm", "patron", "pos2", "1234", "19999");
-        respExpected = new AdministratorInfoResponse(0,"adm", "adm", "patron", "pos2");
+        AdministratorEditRequest admEditReq = new AdministratorEditRequest("Степан", "Федоров", "иванович", "pos2", "1234", "19999");
+        respExpected = new AdministratorInfoResponse(0,"Степан", "Федоров", "иванович", "pos2");
         res = mvc.perform(put("/api/admins").cookie(cookie).contentType(MediaType.APPLICATION_JSON_VALUE).content(mapper.writeValueAsString(admEditReq)));
         mvcRes = res.andExpect(status().isOk()).andReturn();
         actual = mapper.readValue(mvcRes.getResponse().getContentAsString(), AdministratorInfoResponse.class);

@@ -38,14 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ClientControllerTest {
     private final String URL = ServerConstants.URL;
     @Autowired private TestRestTemplate restTemplate;
-    @Autowired private ObjectMapper mapper;
     @Autowired private CommonRestUtils utils;
-    static final private HttpHeaders headers = new HttpHeaders();
-
-    @BeforeClass
-    public static void beforeClass() {
-        headers.setContentType(MediaType.APPLICATION_JSON);
-    }
 
     @Before
     public void before() throws Exception {
@@ -75,48 +68,40 @@ public class ClientControllerTest {
         assertEquals(respExpected, actual);
     }
 
-//    @Test
-//    public void buyProduct() throws Exception {
-//        Cookie adminToken   = utils.registerTestAdmin(mvc);
-//        Cookie clientToken  = utils.registerTestClient(mvc);
-//
-//        utils.addDepositMoney(100, clientToken, mvc);
-//
-//        int catId = utils.addTestCategory(adminToken, mvc);
-//        List<Integer> categoriesList = Collections.singletonList(catId);
-//        Product product = new Product("name1", 10, 20, null);
-//        int productId = (utils.addProduct(product,  adminToken, categoriesList, mvc));
-//
-//        BuyProductRequest req = new BuyProductRequest(productId, product.getName(), product.getPrice(), null);
-//        BuyProductResponse respExpected = new BuyProductResponse( 0, product.getName(), product.getPrice(), 1);
-//
-//        ResultActions res = mvc.perform(post("/api/purchases")
-//                .cookie(clientToken)
-//                .contentType(MediaType.APPLICATION_JSON_VALUE)
-//                .content(mapper.writeValueAsString(req)));
-//        res.andExpect(status().isOk());
-//        MvcResult mvcRes = res.andReturn();
-//        String content = mvcRes.getResponse().getContentAsString();
-//
-//        BuyProductResponse actual = mapper.readValue(content, BuyProductResponse.class);
-//        respExpected.setId(actual.getId());
-//
-//        assertEquals(respExpected, actual);
-//
-//        //-------------CHECK DEPOSIT-------------------------
-//        res = mvc.perform(get("/api/deposits")
-//                .cookie(clientToken));
-//        mvcRes = res.andExpect(status().isOk()).andReturn();
-//        assertEquals(90,  mapper.readValue(mvcRes.getResponse().getContentAsString(), ClientInfoResponse.class).getDeposit());
-//
-//        //-------------CHECK PRODUCT COUNT--------------------
-//        res = mvc.perform(get("/api/products/"+productId)
-//                .cookie(clientToken));
-//
-//        mvcRes = res.andExpect(status().isOk()).andReturn();
-//        content = mvcRes.getResponse().getContentAsString();
-//
-//        assertEquals(product.getCounter()-1, mapper.readValue(content, GetProductResponse.class).getCount());
-//    }
+    @Test
+    public void buyProduct() throws Exception {
+        String adminCookie   = utils.registerTestAdmin(restTemplate);
+        String clientCookie  = utils.registerTestClient(restTemplate);
 
+        utils.addDepositMoney(100, clientCookie, restTemplate);
+
+        int catId = utils.addTestCategory(adminCookie, restTemplate);
+        List<Integer> categoriesList = Collections.singletonList(catId);
+        Product product = new Product("name1", 10, 20, null);
+        int productId = (utils.addProduct(product,  adminCookie, categoriesList, restTemplate));
+
+
+        BuyProductRequest req = new BuyProductRequest(productId, product.getName(), product.getPrice(), null);
+        BuyProductResponse respExpected = new BuyProductResponse( 0, product.getName(), product.getPrice(), 1);
+
+        HttpHeaders clientHeaders = new HttpHeaders();
+        clientHeaders.setContentType(MediaType.APPLICATION_JSON);
+        clientHeaders.set("Cookie", clientCookie);
+        ResponseEntity<BuyProductResponse> res = restTemplate.exchange(URL+"/api/purchases", HttpMethod.POST, new HttpEntity<>(req, clientHeaders), BuyProductResponse.class);
+        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        BuyProductResponse actual = res.getBody();
+        respExpected.setId(actual.getId());
+        assertEquals(respExpected, actual);
+
+        //-------------CHECK DEPOSIT-------------------------
+        ResponseEntity<ClientInfoResponse> res2 = restTemplate.exchange(URL+"/api/deposits", HttpMethod.GET, new HttpEntity<>("", clientHeaders), ClientInfoResponse.class);
+        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        assertEquals(90,  res2.getBody().getDeposit());
+
+        //-------------CHECK PRODUCT COUNT--------------------
+        ResponseEntity<GetProductResponse> res3 = restTemplate.exchange(URL+"/api/products/"+productId, HttpMethod.GET, new HttpEntity<>("", clientHeaders), GetProductResponse.class);
+        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        assertEquals(90,  res2.getBody().getDeposit());
+        assertEquals(product.getCounter()-1, res3.getBody().getCount());
+    }
 }

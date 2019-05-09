@@ -173,15 +173,4 @@ public class ProductControllerTest {
         assertEquals(response.getId(), actual.getId());
         assertEquals(new GetProductResponse(response.getId(),"product", 10, 12, new ArrayList<>(Arrays.asList("Phones"))), response);
     }
-
-    @Test
-    public void getProductsTest() throws Exception {
-        Cookie token = utils.registerTestAdmin(mvc);
-
-        // TODO
-        // Учитывая сложную логику в тз для этого запроса, нужен большой тест с множеством данных
-        // Тестовые данные будут забиватся в БД и после этого будут тестироваться опции
-        // Когда буду писать большие тесты для всей логики приступлю и к написанию этого теста
-
-   }
 }

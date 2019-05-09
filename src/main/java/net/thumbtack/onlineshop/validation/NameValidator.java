@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class NameValidator implements ConstraintValidator<NameFormat, String> {
@@ -18,6 +20,8 @@ public class NameValidator implements ConstraintValidator<NameFormat, String> {
             LOGGER.debug("Validate name is null");
             return true;                                // use @NotNull if need
         }
-        return !name.matches("[^а-яА-ЯёЁ]");            // find non assert symbols
+        Pattern pattern = Pattern.compile("[^а-яА-ЯёЁ]");
+        Matcher matcher = pattern.matcher(name);
+        return !matcher.find();       // find non assert symbols
     }
 }

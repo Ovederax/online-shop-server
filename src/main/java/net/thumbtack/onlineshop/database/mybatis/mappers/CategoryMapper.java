@@ -4,6 +4,7 @@ import net.thumbtack.onlineshop.model.entity.Category;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public interface CategoryMapper {
@@ -14,7 +15,7 @@ public interface CategoryMapper {
             ")"+
             "</script>")
     @Options(useGeneratedKeys = true, keyColumn = "id")
-    void insertCategory(Category category);
+    void insertCategory(Category category) throws SQLException;
 
     @Select("SELECT * FROM categories WHERE id=#{id}")
     @Results({
@@ -26,7 +27,7 @@ public interface CategoryMapper {
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
     })
-    Category findCategoryById(int id);
+    Category findCategoryById(int id) throws SQLException;
 
     @Update("<script>update categories "
             + "<set>"
@@ -34,10 +35,10 @@ public interface CategoryMapper {
             + "<if test='parentId!=null'>parentId=#{parentId},</if>"
             + "</set> WHERE id=#{id}"
             + "</script>")
-    void updateCategoryById(@Param(value = "id") int id, @Param(value = "name") String name, @Param(value = "parentId") Integer parentId);
+    void updateCategoryById(@Param(value = "id") int id, @Param(value = "name") String name, @Param(value = "parentId") Integer parentId) throws SQLException;
 
     @Delete("DELETE FROM categories WHERE id=#{id}")
-    void deleteCategoryById(int id);
+    void deleteCategoryById(int id) throws SQLException;
 
     @Select("SELECT * FROM categories WHERE parentId=#{parentId} ORDER BY name")
     @Results({
@@ -47,7 +48,7 @@ public interface CategoryMapper {
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
     })
-    List<Category> findSubCategoryByParentId(int parentId);
+    List<Category> findSubCategoryByParentId(int parentId) throws SQLException;
 
     @Select("SELECT * FROM categories WHERE parentId IS NULL ORDER BY name")
     @Results({
@@ -57,11 +58,11 @@ public interface CategoryMapper {
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
     })
-    List<Category> getParentsCategories();
+    List<Category> getParentsCategories() throws SQLException;
 
     @Delete("DELETE FROM categories")
-    void deleteAllCategory();
+    void deleteAllCategory() throws SQLException;
 
     @Select("SELECT * FROM categories WHERE id IN (#{categories})")
-    List<Category> findCategoriesById(String categories);
+    List<Category> findCategoriesById(String categories) throws SQLException;
 }

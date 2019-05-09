@@ -21,6 +21,9 @@ public class DepositFormatValidator implements ConstraintValidator<DepositFormat
             LOGGER.debug("Validate money is null");
             return true;                            // use @NotNull if need
         }
+        if (money.equals("")) {
+            return false;
+        }
         try {
             return Integer.parseInt(money) > 0;
         } catch (NumberFormatException ex) {

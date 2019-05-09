@@ -17,6 +17,8 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import static net.thumbtack.onlineshop.config.ServerConstants.COOKIE_NAME;
+
 @RestController
 public class ClientController {
     private UserService userService;
@@ -29,23 +31,20 @@ public class ClientController {
     }
     @PostMapping(path="/api/deposits", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public UserInfoResponse addMoneyDeposit(@CookieValue(value = "JAVASESSIONID") Cookie cookie, @Valid @RequestBody DepositMoneyRequest dto,
+    public UserInfoResponse addMoneyDeposit(@CookieValue(value = COOKIE_NAME) Cookie cookie, @Valid @RequestBody DepositMoneyRequest dto,
                                              HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return userService.addMoneyDeposit(dto, cookie.getValue());
     }
 
     @GetMapping(path="/api/deposits", produces = MediaType.APPLICATION_JSON_VALUE )
-    public UserInfoResponse getMoneyDeposit(@CookieValue(value = "JAVASESSIONID") Cookie cookie, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
+    public UserInfoResponse getMoneyDeposit(@CookieValue(value = COOKIE_NAME) Cookie cookie, HttpServletResponse response) throws ServerException {
         return userService.getMoneyDeposit(cookie.getValue());
     }
 
     @PostMapping(path="/api/purchases", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public BuyProductResponse buyProduct(@CookieValue(value = "JAVASESSIONID") Cookie cookie, @Valid @RequestBody BuyProductRequest dto,
+    public BuyProductResponse buyProduct(@CookieValue(value = COOKIE_NAME) Cookie cookie, @Valid @RequestBody BuyProductRequest dto,
                                          HttpServletResponse response) throws JsonProcessingException, ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return productService.buyProduct(dto, cookie.getValue());
     }
 }

@@ -159,7 +159,7 @@ public class AdministratorControllerTest {
                 client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone()), summaryListByClient.getClientInfo());
 
         List<PurchaseResponse> purchases = summaryListByClient.getPurchases();
-        purchases.sort(Comparator.comparingInt(o -> o.getProduct().getId()));
+        purchases.sort(Comparator.comparingInt(PurchaseResponse::getId));
 
         List<BuyProductResponse> productResponses = buyBasketResponse.getBought();
         productResponses.sort(Comparator.comparingInt(BuyProductResponse::getId));
@@ -167,7 +167,7 @@ public class AdministratorControllerTest {
         assertEquals(productResponses.size(), purchases.size());
         for(int i=0; i<productResponses.size(); ++i) {
             PurchaseResponse it = purchases.get(i);
-            BuyProductResponse temp = new BuyProductResponse(it.getProduct().getId(), it.getName(), it.getBuyPrice(), it.getBuyCount());
+            BuyProductResponse temp = new BuyProductResponse(it.getId(), it.getName(), it.getBuyPrice(), it.getBuyCount());
             assertEquals(productResponses.get(i), temp);
         }
     }

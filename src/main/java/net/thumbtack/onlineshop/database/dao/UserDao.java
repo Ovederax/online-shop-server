@@ -13,25 +13,25 @@ public interface UserDao {
     void registerAdministrator(Administrator admin) throws ServerException;
     void editAdministrator(Administrator administrator) throws ServerException;
 
-    Administrator getAdministratorById(int id);
+    Administrator getAdministratorById(int id) throws ServerException;
 
     void registerClient(Client client) throws ServerException;
     void editClient(Client client) throws ServerException;
 
     List<ClientInfo> getClientsInfo() throws ServerException;
 
-    Client getClientById(int id);
-    List<Client> getAllClients();
+    Client getClientById(int id) throws ServerException;
+    List<Client> getAllClients() throws ServerException;
 
     void login(User user, UUID token) throws ServerException;
     int logout(String uuid) throws ServerException;
 
-    User getUserByLogin(String login);
+    User getUserByLogin(String login) throws ServerException;
     User getUserByToken(String token) throws ServerException;
 
-    void reloadMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException;
+    void setMoneyDeposit(Client client, int newMoneyDeposit) throws ServerException;
 
-    void clearData();
+    void clearData() throws ServerException;
 
-    List<Client> getClientsById(List<Integer> clients);
+    List<Client> getClientsById(List<Integer> clients) throws ServerException;
 }

@@ -18,6 +18,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 
+import static net.thumbtack.onlineshop.config.ServerConstants.COOKIE_NAME;
+
 @RestController
 public class CategoryController {
     private CategoryService categoryService;
@@ -28,35 +30,30 @@ public class CategoryController {
     }
     @PostMapping(path="/api/categories", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public AddCategoryResponse addCategory(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public AddCategoryResponse addCategory(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                            @Valid @RequestBody AddCategoryRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.addCategory(dto, cookie.getValue());
     }
     @GetMapping(path="/api/categories/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public GetCategoryResponse getCategory(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public GetCategoryResponse getCategory(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                            @PathVariable int id, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.getCategory(id, cookie.getValue());
     }
     @PutMapping(path="/api/categories/{id}", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public EditCategoryResponse updateCategory(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public EditCategoryResponse updateCategory(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                @PathVariable int id, @Valid @RequestBody EditCategoryRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.updateCategory(id, dto, cookie.getValue());
     }
     @DeleteMapping(path="/api/categories/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public SuccessEmptyResponse deleteCategory(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public SuccessEmptyResponse deleteCategory(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                @PathVariable int id, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         categoryService.deleteCategory(id, cookie.getValue());
         return new SuccessEmptyResponse();
     }
 
     @GetMapping(path="/api/categories", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<GetCategoryResponse> getCategories(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public List<GetCategoryResponse> getCategories(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                    HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return categoryService.getCategories(cookie.getValue());
     }
 }

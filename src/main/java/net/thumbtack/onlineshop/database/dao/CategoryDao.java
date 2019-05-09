@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface CategoryDao {
     void addCategory(Category category) throws ServerException;
-    Category getCategory(int id);
-    void updateCategory (int id, String name, Integer parentId);
-    void deleteCategory (int id);
-    List<Category> getParentsCategories();
-    Category getCategoryById(int id);
+    Category getCategory(int id) throws ServerException;
+    void updateCategory (int id, String name, Integer parentId) throws ServerException;
+    void deleteCategory (int id) throws ServerException;
+    List<Category> getParentsCategories() throws ServerException;
+    Category getCategoryById(int id) throws ServerException;
 
-    List<Category> getCategoriesById(List<Integer> categories);
+    List<Category> getCategoriesById(List<Integer> categories) throws ServerException;
 }

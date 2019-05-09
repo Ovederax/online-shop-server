@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class LoginValidator implements ConstraintValidator<LoginFormat, String> {
@@ -18,6 +20,8 @@ public class LoginValidator implements ConstraintValidator<LoginFormat, String> 
             LOGGER.debug("Validate login is null");
             return true;                                       // use @NotNull if need
         }
-        return !login.matches("[^а-яА-ЯёЁa-zA-Z]");       // find non assert symbols
+        Pattern pattern = Pattern.compile("[^а-яА-ЯёЁa-zA-Z]");
+        Matcher matcher = pattern.matcher(login);
+        return !matcher.find();       // find non assert symbols
     }
 }

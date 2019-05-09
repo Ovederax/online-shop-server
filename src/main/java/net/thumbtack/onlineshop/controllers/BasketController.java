@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.List;
 
+import static net.thumbtack.onlineshop.config.ServerConstants.COOKIE_NAME;
+
 @RestController
 public class BasketController {
     private BasketService basketService;
@@ -29,38 +31,33 @@ public class BasketController {
     }
 
     @PostMapping(path="/api/basket", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<ProductInBasketResponse> addProductIntoBasket(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public List<ProductInBasketResponse> addProductIntoBasket(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                               @Valid @RequestBody AddProductToBasketsRequest dto, HttpServletResponse response) throws JsonProcessingException, ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return basketService.addProductToBasket(dto, cookie.getValue());
     }
 
     @DeleteMapping(path="/api/basket/{id}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public SuccessEmptyResponse deleteProductFromBasket(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public SuccessEmptyResponse deleteProductFromBasket(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                         @PathVariable int id, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         basketService.deleteProductFromBasket(id, cookie.getValue());
         return new SuccessEmptyResponse();
     }
 
     @PutMapping(path="/api/basket", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<ProductInBasketResponse> updateProductCountInBasket(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public List<ProductInBasketResponse> updateProductCountInBasket(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                         @Valid @RequestBody BasketUpdateCountProductRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return basketService.updateProductCount(dto, cookie.getValue());
     }
 
     @GetMapping(path="/api/basket", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<ProductInBasketResponse> getProductsInBasket(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public List<ProductInBasketResponse> getProductsInBasket(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                             HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return basketService.getProductsInBasket(cookie.getValue());
     }
 
     @PostMapping(path="/api/purchases/basket", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public BuyProductFromBasketResponse buyProductsFromBasket(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public BuyProductFromBasketResponse buyProductsFromBasket(@CookieValue(value = COOKIE_NAME) Cookie cookie,
                                                               @Valid @RequestBody List<BuyProductFromBasketRequest> dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return basketService.buyProductFromBasket(dto, cookie.getValue());
     }
 }

@@ -4,12 +4,8 @@ import net.thumbtack.onlineshop.dto.response.ErrorContent;
 import net.thumbtack.onlineshop.dto.response.ErrorResponse;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
-import org.hibernate.validator.cfg.ConstraintDef;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -18,26 +14,19 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
-import org.springframework.web.server.ServerErrorException;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 @ControllerAdvice
-// REVU rename. It is not controller, it is GlobalExceptionHandler
-public class ExceptionController {
+public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MissingRequestCookieException.class)
     @ResponseBody
@@ -50,35 +39,29 @@ public class ExceptionController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     ErrorResponse handleValidationError(HttpServletRequest req, MethodArgumentNotValidException ex) {
-        ArrayList<ErrorContent> list = new ArrayList<>(ex.getBindingResult().getFieldErrors().size());
         final String errorCode = ErrorCode.VALIDATE_ERROR.getErrorCode();
-        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
-            list.add( new ErrorContent(errorCode, fieldError.getField(), fieldError.getDefaultMessage()) );
+        return new ErrorResponse(ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(fieldError -> new ErrorContent(errorCode, fieldError.getField(), fieldError.getDefaultMessage()))
+                .collect(Collectors.toList()));
         }
-        return new ErrorResponse(list);
-    }
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseBody
     ErrorResponse handleValidationError(HttpServletRequest req, ConstraintViolationException ex) {
-    	// REVU List<ErrorContent> list = new ArrayList<>();
-        ArrayList<ErrorContent> list = new ArrayList<>();
         final String errorCode = ErrorCode.VALIDATE_ERROR.getErrorCode();
-        // REVU ConstraintViolation is a raw type. References to generic type ConstraintViolation<T> should be parameterized
-        for (ConstraintViolation it : ex.getConstraintViolations()) {
-            list.add( new ErrorContent(errorCode, "", it.getMessage()) );
-        }
-
-        return new ErrorResponse(list);
+        return new ErrorResponse((ex.getConstraintViolations()
+                .stream()
+                .map((ConstraintViolation<?> it) -> new ErrorContent(errorCode, "", it.getMessage()))
+                .collect(Collectors.toList())));
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(ServerException.class)
     @ResponseBody
     ErrorResponse handleServerException(HttpServletRequest req, ServerException ex) {
-        return new ErrorResponse(asList(
-                new ErrorContent( ex.getErrorCode(), ex.getField(), ex.getMessage() )
-        ));
+        return new ErrorResponse( ex.getErrors() );
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

@@ -1,22 +1,21 @@
 package net.thumbtack.onlineshop.database.daoimpl;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.mybatis.mappers.BasketMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper;
 import net.thumbtack.onlineshop.database.mybatis.mappers.UserMapper;
-import net.thumbtack.onlineshop.model.entity.Category;
-import net.thumbtack.onlineshop.model.entity.Client;
-import net.thumbtack.onlineshop.model.entity.Product;
-import net.thumbtack.onlineshop.model.entity.Purchase;
+import net.thumbtack.onlineshop.model.entity.*;
 import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
+import net.thumbtack.onlineshop.model.transfer.PurchaseBuyInfo;
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLException;
 import java.util.List;
-import java.util.StringJoiner;
 
 @Component
 public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
@@ -29,17 +28,17 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
             try {
                 ProductMapper mapper = getProductMapper(sqlSession);
                 mapper.addProduct(product);
-                if(categories != null) {
+                if(categories != null && categories.size() > 0) {
                     mapper.insertProductCategories(product, categories);
                 }
-                // REVU never catch Exception, catch subclass
-                // You must be sure that the problem is really duplicate name
-                // exception can be thrown by another reason
-                // see MySQLIntegrityConstraintViolationException
-            } catch (Exception ex) {
+            } catch (MySQLIntegrityConstraintViolationException ex) {
                 LOGGER.info("Can't addProduct {} in DB ", product, ex);
                 sqlSession.rollback();
                 throw new ServerException(ErrorCode.CANT_ADD_PRODUCT_WITH_NO_UNIQUE_NAME);
+            } catch (SQLException e) {
+                LOGGER.info("Can't addProduct {} in DB ", product);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_ADD_PRODUCT);
             }
             sqlSession.commit();
         }
@@ -47,16 +46,14 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
     }
 
     @Override
-    public Product getProductById(int id) {
+    public Product getProductById(int id) throws ServerException {
         LOGGER.debug("ProductDao getProductById");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getProductMapper(sqlSession).findProductById(id);
-                // REVU never catch Exception, catch subclass
-            } catch (Exception ex) {
+            } catch ( SQLException ex ) {
                 LOGGER.info("Can't getProductById {} in DB ", id, ex);
-                // REVU throw your own exception
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_PRODUCT);
             }
         }
     }
@@ -77,161 +74,172 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
                         //mapper.insertProductCategories(product, categories);
                     }
                 }
-                // REVU never catch Exception, catch subclass
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't updateProduct {} in DB ", product, ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_UPDATE_PRODUCT);
             }
             sqlSession.commit();
         }
     }
 
     @Override
-    public void markProductAsDeleted(Product product) {
+    public void markProductAsDeleted(Product product) throws ServerException {
         LOGGER.debug("ProductDao markProductAsDeleted");
         try(SqlSession sqlSession = getSession()) {
             try {
                 getProductMapper(sqlSession).markProductAsDeleted(product);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't markProductAsDeleted in DB ", ex);
                 sqlSession.rollback();
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_DELETE_PRODUCT);
             }
             sqlSession.commit();
         }
     }
-    private void buyProductDepositUpdate(UserMapper userMapper, Client client, int newMoneyDeposit) throws ServerException {
-        if(userMapper.updateMoneyDeposit(client, newMoneyDeposit) != 1) {
-            throw new ServerException(ErrorCode.NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE);
-        }
-    }
-    private void buyProductProductUpdate(ProductMapper productMapper, Purchase purchase, int newProductCount) throws ServerException {
-        if(productMapper.updateProductCount(purchase.getActual(), newProductCount) != 1) {
-            throw new ServerException(ErrorCode.NO_BUY_IF_PRODUCT_IS_CHANGE);
-        }
-    }
-    private void buyProductMakePurchase(ProductMapper productMapper, Purchase purchase, Client client) throws ServerException {
-        if(productMapper.makePurchase(purchase, client) != 1) {
-            throw new ServerException(ErrorCode.PRODUCT_IS_DELETED);
-        }
-    }
-    private void commonBuyProduct(UserMapper userMapper, ProductMapper productMapper,
-                          Purchase purchase, Client client, int newMoneyDeposit, int newProductCount) throws ServerException {
-        buyProductDepositUpdate(userMapper, client, newMoneyDeposit);
-        buyProductProductUpdate(productMapper, purchase, newProductCount);
-        buyProductMakePurchase(productMapper, purchase, client);
 
-        client.getDeposit().setMoney(newMoneyDeposit);
-        purchase.getActual().setCounter(newProductCount);
-    }
     @Override
     public int buyProduct(Purchase purchase, Client client, int newMoneyDeposit, int newProductCount) throws ServerException {
 //        1) Пробуем снять деньги с клиента  *кол-во денег на момент покупки не изменилось
 //        2) Пробуем обновить кол-во товара  *свойства товара не изменились
 //        3) Добавляем объект покупки
-        LOGGER.debug("ProductDao buyProductFromBasket");
+//        4) Удаляем объект корзины
+        LOGGER.debug("ProductDao buyProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
                 ProductMapper productMapper = getProductMapper(sqlSession);
                 UserMapper userMapper = getUserMapper(sqlSession);
-                commonBuyProduct(userMapper, productMapper, purchase, client, newMoneyDeposit, newProductCount);
-            } catch (Exception ex) {
-                LOGGER.info("Can't buyProductFromBasket {} in DB ", purchase, ex);
+                buyProductDepositUpdate(userMapper, client, newMoneyDeposit);
+                commonBuyProduct(productMapper, purchase, client, newProductCount);
+            } catch (ServerException ex) {
+                LOGGER.info("Can't buyProduct {} in DB ", purchase, ex);
                 sqlSession.rollback();
                 throw ex;
+            } catch (SQLException ex) {
+                LOGGER.info("Can't buyProduct {} in DB ", purchase, ex);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_BUY_PRODUCT);
             }
             sqlSession.commit();
         }
         return purchase.getId();
     }
-    public void deleteItemFromBasketByProductId(BasketMapper mapper, int id) throws ServerException {
-        LOGGER.debug("ProductDao deleteItemFromBasketByProductId");
-        try {
-            mapper.deleteItemFromBasketByProductId(id);
-        } catch (Exception ex) {
-            LOGGER.info("Can't deleteItemFromBasketByProductId in DB ", ex);
-            throw new ServerException(ErrorCode.DB_CANT_DELETE_FROM_BASKET);
-        }
-    }
+
     @Override
-    public int buyProductFromBasket(Purchase purchase, Client client, int newMoneyDeposit, int newProductCount) throws ServerException {
-        LOGGER.debug("ProductDao buyProductFromBasket");
+    public void buyProductsFromBasket(List<PurchaseBuyInfo> purchases, Client client, int newDeposit) throws ServerException {
+        LOGGER.debug("ProductDao buyProductsFromBasket");
         try(SqlSession sqlSession = getSession()) {
             try {
                 ProductMapper productMapper = getProductMapper(sqlSession);
                 UserMapper userMapper = getUserMapper(sqlSession);
                 BasketMapper basketMapper = getBasketMapper(sqlSession);
-
-                commonBuyProduct(userMapper, productMapper, purchase, client, newMoneyDeposit, newProductCount);
-                deleteItemFromBasketByProductId(basketMapper, purchase.getActual().getId());
-            } catch (Exception ex) {
-                LOGGER.info("Can't buyProductFromBasket {} in DB ", purchase, ex);
+                buyProductDepositUpdate(userMapper, client, newDeposit);
+                for(PurchaseBuyInfo it : purchases) {
+                    commonBuyProduct(productMapper, it.getPurchase(), client, it.getNewProductCount());
+                    deleteItemFromBasketById(basketMapper, it.getBasketItem().getId());
+                }
+            } catch (ServerException ex) {
+                LOGGER.info("Can't buyProductsFromBasket {} in DB ", ex);
                 sqlSession.rollback();
                 throw ex;
+            } catch (SQLException ex) {
+                LOGGER.info("Can't buyProductsFromBasket {} in DB ",  ex);
+                sqlSession.rollback();
+                throw new ServerException(ErrorCode.CANT_BUY_PRODUCT_FROM_BASKET);
             }
             sqlSession.commit();
         }
-        return purchase.getId();
     }
 
     @Override
-    public List<Product> getProductListOrderProduct(List<Integer> categoriesId) {
+    public List<Product> getProductListOrderProduct(List<Integer> categoriesId) throws ServerException {
         LOGGER.debug("ProductDao getProductListOrderProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
-                if(categoriesId != null) {
-                    StringJoiner joiner = new StringJoiner(",");
-                    for(Integer it: categoriesId) {
-                        joiner.add(it.toString());
-                    }
-                    return getProductMapper(sqlSession).getProductListOrderProduct(joiner.toString());
+                if(categoriesId != null && categoriesId.size() != 0) {
+                    return getProductMapper(sqlSession).getProductListOrderProduct(categoriesId);
                 } else {
                     return getProductMapper(sqlSession).getProductListOrderProduct(null);
                 }
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getProductListOrderProduct in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_PRODUCT_LIST);
             }
         }
     }
 
     @Override
-    public List<Product> getProductListOrderProductNoCategory() {
+    public List<Product> getProductListOrderProductNoCategory() throws ServerException {
         LOGGER.debug("ProductDao getProductListOrderProductNoCategory");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getProductMapper(sqlSession).getProductListOrderProductNoCategory();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getProductListOrderProductNoCategory in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_PRODUCT_LIST);
             }
         }
     }
 
     @Override
-    public List<Category> getProductListOrderCategory(List<Integer> categoriesId) {
+    public List<Category> getProductListOrderCategory(List<Integer> categoriesId) throws ServerException {
         LOGGER.debug("ProductDao getProductListOrderProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getProductMapper(sqlSession).getProductListOrderCategory(categoriesId);
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getProductListOrderProduct in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_PRODUCT_LIST);
             }
         }
     }
 
     @Override
-    public List<Product> getAllProduct() {
+    public List<Product> getAllProduct() throws ServerException {
         LOGGER.debug("ProductDao getAllProduct");
         try(SqlSession sqlSession = getSession()) {
             try {
                 return getProductMapper(sqlSession).getAllProduct();
-            } catch (Exception ex) {
+            } catch (SQLException ex) {
                 LOGGER.info("Can't getAllProduct in DB ", ex);
-                throw ex;
+                throw new ServerException(ErrorCode.CANT_GET_PRODUCT_LIST);
             }
+        }
+    }
+
+    private void buyProductDepositUpdate(UserMapper userMapper, Client client, int newMoneyDeposit) throws ServerException, SQLException {
+        if(userMapper.updateMoneyDeposit(client, newMoneyDeposit) != 1) {
+            throw new ServerException(ErrorCode.NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE);
+        }
+        client.getDeposit().setMoney(newMoneyDeposit);
+    }
+
+    private void buyProductProductUpdate(ProductMapper productMapper, Purchase purchase, int newProductCount) throws ServerException, SQLException {
+        if(productMapper.updateProductCount(purchase.getActual(), newProductCount) != 1) {
+            throw new ServerException(ErrorCode.NO_BUY_IF_PRODUCT_IS_CHANGE);
+        }
+    }
+
+    private void buyProductMakePurchase(ProductMapper productMapper, Purchase purchase, Client client) throws ServerException, SQLException {
+        if(productMapper.makePurchase(purchase, client) != 1) {
+            throw new ServerException(ErrorCode.PRODUCT_IS_DELETED);
+        }
+    }
+
+    private void commonBuyProduct(ProductMapper productMapper,
+                                  Purchase purchase, Client client, int newProductCount) throws ServerException, SQLException {
+        buyProductProductUpdate(productMapper, purchase, newProductCount);
+        buyProductMakePurchase(productMapper, purchase, client);
+        purchase.getActual().setCounter(newProductCount);
+    }
+
+    private void deleteItemFromBasketById(BasketMapper mapper, int id) throws ServerException {
+        LOGGER.debug("ProductDao deleteItemFromBasketById");
+        try {
+            mapper.deleteItemFromBasketById(id);
+        } catch (SQLException ex) {
+            LOGGER.info("Can't deleteItemFromBasketById in DB ", ex);
+            throw new ServerException(ErrorCode.CANT_DELETE_FROM_BASKET);
         }
     }
 }

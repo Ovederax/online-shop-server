@@ -13,39 +13,72 @@ public enum ErrorCode {
     //DATABASE ERROR
     LOGIN_ALREADY_EXISTS("login",   "This login is used"),
     LOGIN_NOT_FOUND_DB  ("login",   "This login is not found"),
-    USER_IS_INACTIVE    ("token",   "User is inactive now, no need logout account"),
     USER_IS_ACTIVE      ("token",   "User is active now, no need login account"),
-    USER_IS_NOT_ADMIN   ("token",   "User is not administrator"),
     UUID_NOT_FOUND              ("token",    "Your uuid is not found"),
     EDIT_NOT_YOUR_TYPE_USER     ("token",    "You edit not your type of user"),
     YOU_NO_HAVE_THIS_PRIVILEGES ("token",    "You no have this privileges"),
     USER_IS_NOT_CLIENT("token", "User is not client" ),
-    YOU_ARE_NOT_LOGIN("token", "You are not login"),
 
     CATEGORY_NO_EXISTS("id",   "This category is no exist"),
     BAD_SET_SUBCATEGORY_INTO_SUBCATEGORY("parentId", "You no can set subcategory into subcategory"),
     UPDATE_PRODUCT_SET_CATEGORIES_NO_SUPPORT("categories", "You no can set categories in product where update it"),
-    BAD_ORDER_FOR_GET_PROGUCT_LIST("order", "Bad order for get products list"),
+    BAD_ORDER_FOR_GET_PRODUCT_LIST("order", "Bad order for get products list"),
     BAD_UPDATE_PRODUCT_IN_BASKET("", "Bad update product in basket"),
     NO_BUY_IF_PRODUCT_IS_CHANGE("field", "No make buy if product is changed"),
     YOU_NEED_MORE_MONEY_TO_BUY("money", "You need more money to buy product"),
     BUY_COUNT_PRODUCT_LESS_NEED_COUNT("count", "You no can buy product with this count"),
     NO_BUY_IF_CLIENT_DEPOSIT_IS_CHANGE("money", "You no can buy product if your money deposit is change"),
+    NO_BUY_PRODUCT_IF_NAME_IS_CHANGE("name", "You cant buy product if name is change"),
+    NO_BUY_PRODUCT_IF_PRICE_IS_CHANGE("price", "You cant buy product if price is change"),
+    NO_BUY_PRODUCT_IF_COUNT_IS_CHANGE("count", "You cant buy product if count is change"),
     BAD_UPDATE_DEPOSIT_IT_IS_CHANGE("money", "Bad update deposit, deposit is change"),
     PRODUCT_IS_DELETED("product", "Product is deleted"),
-    CANT_ADD_PRODUCT_WITH_NO_UNIQUE_NAME("name", "Cant add product with no unique name"),
-    CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME("name", "Cant add category with no unique name"),
+
 
     //-----DATABASE COMMON_ERROR---------------
-
-    DB_CANT_DELETE_FROM_BASKET("", ""),
 
     NOT_FOUND("","Page not found"),
     INTERNAL_SERVER_ERROR("", "Internal server error"),
 
+    //--------MY_SQL_EXCEPTION------------------
+
+
     //-----------REQUEST ERROR-------------
     NULL_REQUEST("", "No data in Request"),
-    COOKIE_MISSING("", "Cookie is missing");
+    COOKIE_MISSING("", "Cookie is missing"),
+
+    //MySQLIntegrityConstraintViolationException
+    CANT_ADD_PRODUCT_WITH_NO_UNIQUE_NAME("name", "Cant add product with no unique name"),
+    CANT_ADD_CATEGORY_WITH_NO_UNIQUE_NAME("name", "Cant add category with no unique name"),
+
+    // EXEPTION IN DaoImpl
+    CANT_ADD_PRODUCT_TO_BASKET("", "Cant add product to basket"),
+    CANT_GET_PRODUCT_FROM_BASKET("", "Cant get product from basket"),
+    CANT_DELETE_FROM_BASKET("", "Cant delete from basket"),
+    CANT_UPDATE_BASKET_ITEM("", "Cant update basket record"),
+    CANT_ADD_CATEGORY("", "Cant add new category"),
+    CANT_GET_CATEGORY("", "Cant get category"),
+    CANT_UPDATE_CATEGORY("", "Cant update category"),
+    CANT_DELETE_CATEGORY("", "Cant delete category"),
+    CANT_CLEAR_DATABASE("", "Cant clear database"),
+    CANT_ADD_PRODUCT("", "Cant add product"),
+    CANT_GET_PRODUCT("", "Cant get product"),
+    CANT_UPDATE_PRODUCT("", "Cant update product"),
+    CANT_DELETE_PRODUCT("", "Cant delete product"),
+    CANT_BUY_PRODUCT("", "Cant buy product"),
+    CANT_BUY_PRODUCT_FROM_BASKET("", "Cant buy product from basket"),
+    CANT_GET_PRODUCT_LIST("", "Cant get product list"),
+    CANT_GET_CLIENTS("", "Cant get clients"),
+    CANT_GET_CLIENT("", "Cant get client"),
+    CANT_UPDATE_MONEY_DEPOSIT("", "Cant update money deposit"),
+    CANT_USER_LOGOUT("", "Cant user logout"),
+    CANT_GET_CLIENT_INFO("", "Cant get client info"),
+    CANT_GET_ADMINISTRATOR("", "Cant get administrator"),
+    CANT_UPDATE_ADMINISTRATOR("", "Cant update administrator"),
+    CANT_UPDATE_CLIENT("", "Cant update client"),
+    CANT_ADD_ADMINISTRATOR("", "Cant add administrator"),
+    CANT_ADD_CLIENT("", "Cant add client");
+    //------------------------------------------------------------------------------------------------
 
     private String message;
     private String field;

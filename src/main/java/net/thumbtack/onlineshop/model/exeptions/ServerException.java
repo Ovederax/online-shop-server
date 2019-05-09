@@ -1,32 +1,41 @@
 package net.thumbtack.onlineshop.model.exeptions;
 
+import net.thumbtack.onlineshop.dto.response.ErrorContent;
 import net.thumbtack.onlineshop.model.exeptions.enums.ErrorCode;
 
-public class ServerException extends Exception {
-    private String error_code;
-    private String message;
-    private String field;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-    public ServerException(String error_code, String message, String field) {
-        this.error_code = error_code;
-        this.message = message;
-        this.field = field;
+public class ServerException extends Exception {
+    private List<ErrorContent> errors;
+
+    //primary constructor
+    public ServerException(List<ErrorContent> errors) {
+        this.errors = errors;
+    }
+
+    public ServerException(String error_code, String field, String message) {
+        this(Collections.singletonList(new ErrorContent(error_code, field, message)));
     }
 
     public ServerException(ErrorCode exEnum) {
-        this(exEnum.getErrorCode(), exEnum.getMessage(), exEnum.getField());
+        this(exEnum.getErrorCode(), exEnum.getField(), exEnum.getMessage());
     }
 
-
-    public String getErrorCode() {
-        return error_code;
+    public static ServerException instanceFromErrorCodeList(List<ErrorCode> errors) {
+        return new ServerException(errors.stream()
+                .map(errorCode -> new ErrorContent(errorCode.getErrorCode(), errorCode.getField(), errorCode.getMessage()))
+                .collect(Collectors.toList()));
     }
 
-    public String getField() {
-        return field;
+    public List<ErrorContent> getErrors() {
+        return errors;
     }
 
-    public String getMessage() {
-        return message;
+    public void setErrors(List<ErrorContent> errors) {
+        this.errors = errors;
     }
 }

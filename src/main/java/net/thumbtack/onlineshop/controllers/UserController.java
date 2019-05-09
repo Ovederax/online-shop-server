@@ -18,6 +18,8 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
+import static net.thumbtack.onlineshop.config.ServerConstants.COOKIE_NAME;
+
 @Validated
 @RestController
 public class UserController {
@@ -26,14 +28,6 @@ public class UserController {
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
-    }
-
-    private UserInfoResponse login(String login, String password, HttpServletResponse response) throws ServerException {
-        UserLoginResponse r = userService.login(new UserLoginRequest(login, password));
-        final Cookie cookie = new Cookie("JAVASESSIONID", r.getToken());
-        response.addCookie(cookie);
-        response.setStatus(HttpServletResponse.SC_OK);
-        return r.getUserInfo();
     }
 
     @PostMapping(path="/api/admins", consumes = MediaType.APPLICATION_JSON_VALUE,
@@ -57,36 +51,38 @@ public class UserController {
     }
 
     @DeleteMapping(path="/api/sessions", produces = MediaType.APPLICATION_JSON_VALUE )
-    public SuccessEmptyResponse logout(@CookieValue(value = "JAVASESSIONID") Cookie cookie, HttpServletResponse response) throws ServerException {
+    public SuccessEmptyResponse logout(@CookieValue(value = COOKIE_NAME) Cookie cookie, HttpServletResponse response) throws ServerException {
         userService.logout(cookie.getValue());
-        response.setStatus(HttpServletResponse.SC_OK);
         return new SuccessEmptyResponse();
     }
 
     @GetMapping(path="/api/accounts", produces = MediaType.APPLICATION_JSON_VALUE )
-    public UserInfoResponse userInfo(@CookieValue(value = "JAVASESSIONID") Cookie cookie, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
+    public UserInfoResponse userInfo(@CookieValue(value = COOKIE_NAME) Cookie cookie, HttpServletResponse response) throws ServerException {
         return userService.getUserInfo(cookie.getValue());
     }
 
     @GetMapping(path="/api/clients", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<ClientInfo> clientsInfo(@CookieValue(value = "JAVASESSIONID") Cookie cookie, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
+    public List<ClientInfo> clientsInfo(@CookieValue(value = COOKIE_NAME) Cookie cookie, HttpServletResponse response) throws ServerException {
         return userService.getClientsInfo(cookie.getValue());
     }
 
     @PutMapping(path="/api/admins", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public AdministratorInfoResponse updateAdministratorProfile(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public AdministratorInfoResponse updateAdministratorProfile(@CookieValue(value = COOKIE_NAME) Cookie cookie,
             @Valid @RequestBody AdministratorEditRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return userService.editAdministrator(dto, cookie.getValue());
     }
 
     @PutMapping(path="/api/clients", consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE )
-    public ClientInfoResponse updateClientProfile(@CookieValue(value = "JAVASESSIONID") Cookie cookie,
+    public ClientInfoResponse updateClientProfile(@CookieValue(value = COOKIE_NAME) Cookie cookie,
           @Valid @RequestBody ClientEditRequest dto, HttpServletResponse response) throws ServerException {
-        response.setStatus(HttpServletResponse.SC_OK);
         return userService.editClient(dto, cookie.getValue());
+    }
+
+    private UserInfoResponse login(String login, String password, HttpServletResponse response) throws ServerException {
+        UserLoginResponse r = userService.login(new UserLoginRequest(login, password));
+        final Cookie cookie = new Cookie(COOKIE_NAME, r.getToken());
+        response.addCookie(cookie);
+        return r.getUserInfo();
     }
 }
