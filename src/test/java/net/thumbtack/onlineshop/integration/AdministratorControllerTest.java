@@ -2,7 +2,6 @@ package net.thumbtack.onlineshop.integration;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.javafx.fxml.builder.URLBuilder;
 import net.thumbtack.onlineshop.dto.request.basket.AddProductToBasketsRequest;
 import net.thumbtack.onlineshop.dto.request.basket.BuyProductFromBasketRequest;
 import net.thumbtack.onlineshop.dto.response.AvailableSettingResponse;
@@ -13,14 +12,13 @@ import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
 import net.thumbtack.onlineshop.dto.response.purchase.PurchaseResponse;
 import net.thumbtack.onlineshop.dto.response.summary.SummaryListByCategory;
 import net.thumbtack.onlineshop.dto.response.summary.SummaryListByClient;
-import net.thumbtack.onlineshop.dto.response.summary.SummaryListByProducts;
+import net.thumbtack.onlineshop.dto.response.summary.SummaryListByProduct;
 import net.thumbtack.onlineshop.dto.response.summary.SummaryListResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfoResponse;
 import net.thumbtack.onlineshop.model.entity.Category;
 import net.thumbtack.onlineshop.model.entity.Client;
 import net.thumbtack.onlineshop.model.entity.Product;
-import net.thumbtack.onlineshop.model.entity.Purchase;
 import net.thumbtack.onlineshop.utils.CommonRestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,24 +28,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.servlet.http.Cookie;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.StringJoiner;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment =  SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -65,7 +58,7 @@ public class AdministratorControllerTest {
     }
 
     @Test
-    public void getSummaryListByClient() throws Exception {
+    public void getSummaryList() throws Exception {
         Client client = new Client("Иван", "Иванов", null, "user@gmail.com", "address", "89136668899", "user", "pass");
         String adminCookie  = utils.registerTestAdmin(restTemplate);
         String clientCookie = utils.registerClient(client, restTemplate);
@@ -108,6 +101,7 @@ public class AdministratorControllerTest {
                 new AddProductToBasketsRequest(products.get(2).getId(), products.get(2).getName(), products.get(2).getPrice(), 2),
                 new AddProductToBasketsRequest(products.get(3).getId(), products.get(3).getName(), products.get(3).getPrice(), 1)
         );
+        products.sort(Comparator.comparingInt(GetProductResponse::getId));
 
         List<ProductInBasketResponse> actual = null;
         for(int i=0; i<basketsRequests.size(); ++i) {
@@ -149,6 +143,7 @@ public class AdministratorControllerTest {
         adminHeaders.setContentType(MediaType.APPLICATION_JSON);
         adminHeaders.add("Cookie", adminCookie);
 
+        //----Test one----
         ResponseEntity<String> res3 = restTemplate.exchange(URL+"/api/purchases?allInfo=true&clients="+ client.getId(), HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
         assertEquals(res3.getStatusCode(), HttpStatus.OK);
         SummaryListResponse listResponse = mapper.readValue(res3.getBody(), SummaryListResponse.class);
@@ -170,6 +165,62 @@ public class AdministratorControllerTest {
             BuyProductResponse temp = new BuyProductResponse(it.getId(), it.getName(), it.getBuyPrice(), it.getBuyCount());
             assertEquals(productResponses.get(i), temp);
         }
+        //----Test two----
+        ResponseEntity<String> res4 = restTemplate.exchange(URL+"/api/purchases?clients="+ client.getId(), HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
+        assertEquals(res4.getStatusCode(), HttpStatus.OK);
+        listResponse = mapper.readValue(res4.getBody(), SummaryListResponse.class);
+
+        summaryListByClient = listResponse.getSummaryListByClients().get(0);
+        assertEquals(2000, summaryListByClient.getSummaryAmount());
+        assertEquals(new ClientInfo(client.getId(), client.getFirstname(), client.getLastname(),
+                client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone()), summaryListByClient.getClientInfo());
+
+        purchases = summaryListByClient.getPurchases();
+        assertEquals(null, purchases);
+
+        //----Test three----
+        ResponseEntity<String> res5 = restTemplate.exchange(URL+"/api/purchases?allInfo=true&clients="+ client.getId()+"&products="+products.get(1).getId()+","+products.get(2).getId(), HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
+        assertEquals(res5.getStatusCode(), HttpStatus.OK);
+        listResponse = mapper.readValue(res5.getBody(), SummaryListResponse.class);
+
+        summaryListByClient = listResponse.getSummaryListByClients().get(0);
+        assertEquals(2000, summaryListByClient.getSummaryAmount());
+        assertEquals(new ClientInfo(client.getId(), client.getFirstname(), client.getLastname(),
+                client.getPatronymic(), client.getEmail(), client.getAddress(), client.getPhone()), summaryListByClient.getClientInfo());
+
+        assertNotNull(summaryListByClient.getPurchases());
+        assertEquals(productResponses.size(),summaryListByClient.getPurchases().size());
+        List<SummaryListByProduct> summaryListByProduct = listResponse.getSummaryListByProducts();
+        assertEquals(2, summaryListByProduct.size());
+        summaryListByProduct.sort(Comparator.comparingInt(o -> o.getProduct().getId()));
+        assertEquals(products.get(1).getName(), summaryListByProduct.get(0).getProduct().getName());
+        assertEquals(null, listResponse.getSummaryListByCategories());
+
+        //---Test four-----
+        StringJoiner joiner = new StringJoiner(",");
+        for (Category it : insertCategories) {
+            joiner.add(Integer.toString(it.getId()));
+        }
+        ResponseEntity<String> res6 = restTemplate.exchange(URL+"/api/purchases?categories="+joiner.toString(), HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
+        assertEquals(res6.getStatusCode(), HttpStatus.OK);
+        listResponse = mapper.readValue(res6.getBody(), SummaryListResponse.class);
+        assertNull(listResponse.getSummaryListByClients());
+        assertNull(listResponse.getSummaryListByProducts());
+
+        List<SummaryListByCategory> summaryListByCategory = listResponse.getSummaryListByCategories();
+        summaryListByCategory.sort((Comparator.comparing(o -> o.getCategory().getName())));
+        assertEquals(4, summaryListByCategory.size());
+        assertEquals("calculator",summaryListByCategory.get(0).getCategory().getName());
+        assertEquals(1,summaryListByCategory.get(0).getPurchases().size());
+        assertEquals("phone",summaryListByCategory.get(3).getCategory().getName());
+        assertEquals(0,summaryListByCategory.get(3).getPurchases().size());
+        //---Test five---
+        ResponseEntity<String> res7 = restTemplate.exchange(URL+"/api/purchases", HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
+        assertEquals(res7.getStatusCode(), HttpStatus.OK);
+        listResponse = mapper.readValue(res7.getBody(), SummaryListResponse.class);
+        assertNull(listResponse.getSummaryListByClients());
+        assertNull(listResponse.getSummaryListByProducts());
+        assertNull(listResponse.getSummaryListByCategories());
     }
 
     @Test

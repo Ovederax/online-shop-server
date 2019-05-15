@@ -6,6 +6,7 @@ import net.thumbtack.onlineshop.model.entity.Product;
 import net.thumbtack.onlineshop.model.entity.Purchase;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.mapping.FetchType;
+import org.apache.ibatis.session.SqlSessionException;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -15,8 +16,7 @@ public interface ProductMapper {
             "JOIN products_categories ON productId=#{products.id} WHERE categoryId = #{categoryId}")
     List<Product> findProductsByCategoryId(int categoryId) throws SQLException;
 
-    @Select("SELECT products.id, products.name, products.price, products.counter FROM products " +
-            "JOIN products_categories ON productId=#{products.id} WHERE categoryId = #{categoryId}")
+    @Select("SELECT products.* FROM products JOIN products_categories ON productId=products.id WHERE categoryId = #{categoryId}")
     List<Product> findProductsByCategoryIdOrderName(int categoryId) throws SQLException;
 
     @Insert("INSERT INTO products(name, price, counter, isDeleted) VALUES(#{name}, #{price}, #{counter}, #{isDeleted})")
@@ -132,7 +132,12 @@ public interface ProductMapper {
 
     @Select("<script>" +
             "SELECT * FROM categories " +
-            "<if test='categoriesId!=null'>WHERE id IN (#{categoriesId}) </if>" +
+            "<if test='list!=null'>" +
+                "WHERE id IN " +
+                "<foreach item='item' index='index' collection='list' open='(' separator=',' close=')'>" +
+                "   #{item}" +
+                "</foreach>" +
+            "</if>" +
             "ORDER BY name" +
             "</script>")
     @Results({
@@ -140,7 +145,7 @@ public interface ProductMapper {
             @Result(property = "parent", column = "parentId", javaType = Category.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
             @Result(property = "subCategories", column = "id", javaType = List.class,
-                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findSubCategoryByParentId", fetchType = FetchType.LAZY)),
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryIdOrderName", fetchType = FetchType.EAGER))
     })
@@ -166,4 +171,30 @@ public interface ProductMapper {
     })
     List<Purchase> findPurchasesByClientId(int clientId) throws SQLException;
 
+
+    @Select("<script>" +
+            "SELECT * FROM purchases WHERE actualId IN " +
+            "<foreach item='item' index='index' collection='products' open='(' separator=',' close=')'>" +
+            "   #{item}" +
+            "</foreach>" +
+            "</script>")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "actual", column = "actualId", javaType = Product.class,
+                    one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductById", fetchType = FetchType.EAGER)),
+    })
+    List<Purchase> getPurchasesByProductsId(@Param("products") List<Integer> products) throws SQLException;
+
+    @Select("<script>" +
+            "SELECT * FROM purchases WHERE actualId IN " +
+            "<foreach item='item' index='index' collection='products' open='(' separator=',' close=')'>" +
+            "   #{item.id}" +
+            "</foreach>" +
+            "</script>")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "actual", column = "actualId", javaType = Product.class,
+                    one = @One(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductById", fetchType = FetchType.EAGER)),
+    })
+    List<Purchase> getPurchasesByProducts(@Param("products") List<Product> products) throws SQLException;
 }

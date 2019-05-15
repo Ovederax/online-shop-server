@@ -238,7 +238,7 @@ public class ProductControllerTest {
         ResponseEntity<String > res3 = restTemplate.exchange(URL+"/api/products?order=CATEGORY", HttpMethod.GET, new HttpEntity<>("", adminHeaders), String.class);
         assertEquals(HttpStatus.OK, res.getStatusCode());
         productResponses = mapper.readValue(res3.getBody(), new TypeReference<List<GetProductResponse>>(){});
-        assertEquals(1, productResponses.size());
+        assertEquals(9, productResponses.size());
         assertEquals(new GetProductResponse(productResponses.get(0).getId(),"TINTON LIFE Plug-in power профессиональная машинка", 618,50, asList()), productResponses.get(0));
 
         //-----------------------product order, categories-----------------------

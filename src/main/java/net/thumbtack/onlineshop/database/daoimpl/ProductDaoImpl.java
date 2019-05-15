@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -203,6 +204,38 @@ public class ProductDaoImpl extends BaseDaoImpl implements ProductDao {
             } catch (SQLException ex) {
                 LOGGER.info("Can't getAllProduct in DB ", ex);
                 throw new ServerException(ErrorCode.CANT_GET_PRODUCT_LIST);
+            }
+        }
+    }
+
+    @Override
+    public List<Purchase> getPurchasesByProductsId(List<Integer> products) throws ServerException {
+        LOGGER.debug("ProductDao getPurchasesByProductsId");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                if(products.size() == 0) {
+                    return new ArrayList<>();
+                }
+                return getProductMapper(sqlSession).getPurchasesByProductsId(products);
+            } catch (SQLException ex) {
+                LOGGER.info("Can't getPurchasesByProductsId in DB ", ex);
+                throw new ServerException(ErrorCode.CANT_GET_PURCHASES_LIST);
+            }
+        }
+    }
+
+    @Override
+    public List<Purchase> getPurchasesByProducts(List<Product> products) throws ServerException {
+        LOGGER.debug("ProductDao getPurchasesByProducts");
+        try(SqlSession sqlSession = getSession()) {
+            try {
+                if(products.size() == 0) {
+                    return new ArrayList<>();
+                }
+                return getProductMapper(sqlSession).getPurchasesByProducts(products);
+            } catch (SQLException ex) {
+                LOGGER.info("Can't getPurchasesByProducts in DB ", ex);
+                throw new ServerException(ErrorCode.CANT_GET_PURCHASES_LIST);
             }
         }
     }

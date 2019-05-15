@@ -17,5 +17,6 @@ public interface ProductDao {
     List<Product> getProductListOrderProductNoCategory() throws ServerException;
     List<Category> getProductListOrderCategory(List<Integer> categoriesId) throws ServerException;
     List<Product> getAllProduct() throws ServerException;
-
+    List<Purchase> getPurchasesByProductsId(List<Integer> productsList) throws ServerException;
+    List<Purchase> getPurchasesByProducts(List<Product> products) throws ServerException;
 }

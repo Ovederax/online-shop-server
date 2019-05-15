@@ -18,6 +18,9 @@ public class PurchaseResponse {
         this.buyCount = buyCount;
         this.buyPrice = buyPrice;
     }
+    public PurchaseResponse(int id, String name, int buyPrice, int buyCount) {
+        this(id, null, name, buyPrice, buyCount);
+    }
 
     public PurchaseResponse() {
     }

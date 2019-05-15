@@ -1,16 +1,14 @@
 package net.thumbtack.onlineshop.dto.response.summary;
 
-import net.thumbtack.onlineshop.model.entity.Purchase;
-
 import java.util.List;
 import java.util.Objects;
 
 public class SummaryListResponse {
     List<SummaryListByCategory> summaryListByCategories;
-    List<SummaryListByProducts> summaryListByProducts;
+    List<SummaryListByProduct> summaryListByProducts;
     List<SummaryListByClient> summaryListByClients;
 
-    public SummaryListResponse(List<SummaryListByCategory> summaryListByCategories, List<SummaryListByProducts> summaryListByProducts, List<SummaryListByClient> summaryListByClients) {
+    public SummaryListResponse(List<SummaryListByCategory> summaryListByCategories, List<SummaryListByProduct> summaryListByProducts, List<SummaryListByClient> summaryListByClients) {
         this.summaryListByCategories = summaryListByCategories;
         this.summaryListByProducts = summaryListByProducts;
         this.summaryListByClients = summaryListByClients;
@@ -27,11 +25,11 @@ public class SummaryListResponse {
         this.summaryListByCategories = summaryListByCategories;
     }
 
-    public List<SummaryListByProducts> getSummaryListByProducts() {
+    public List<SummaryListByProduct> getSummaryListByProducts() {
         return summaryListByProducts;
     }
 
-    public void setSummaryListByProducts(List<SummaryListByProducts> summaryListByProducts) {
+    public void setSummaryListByProducts(List<SummaryListByProduct> summaryListByProducts) {
         this.summaryListByProducts = summaryListByProducts;
     }
 

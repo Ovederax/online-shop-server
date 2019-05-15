@@ -6,10 +6,12 @@ import net.thumbtack.onlineshop.database.dao.CommonDao;
 import net.thumbtack.onlineshop.database.dao.ProductDao;
 import net.thumbtack.onlineshop.database.dao.UserDao;
 import net.thumbtack.onlineshop.dto.response.AvailableSettingResponse;
-import net.thumbtack.onlineshop.dto.response.basket.ProductInBasketResponse;
+import net.thumbtack.onlineshop.dto.response.category.GetCategoryResponse;
 import net.thumbtack.onlineshop.dto.response.product.GetProductResponse;
 import net.thumbtack.onlineshop.dto.response.purchase.PurchaseResponse;
+import net.thumbtack.onlineshop.dto.response.summary.SummaryListByCategory;
 import net.thumbtack.onlineshop.dto.response.summary.SummaryListByClient;
+import net.thumbtack.onlineshop.dto.response.summary.SummaryListByProduct;
 import net.thumbtack.onlineshop.dto.response.summary.SummaryListResponse;
 import net.thumbtack.onlineshop.dto.response.user.ClientInfo;
 import net.thumbtack.onlineshop.model.entity.*;
@@ -17,8 +19,10 @@ import net.thumbtack.onlineshop.model.exeptions.ServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.PushbackInputStream;
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AdministratorService extends ServiceBase{
@@ -26,13 +30,11 @@ public class AdministratorService extends ServiceBase{
     private CommonDao commonDao;
     private ProductDao productDao;
     private UserDao userDao;
-    private CategoryDao categoryDao;
 
     @Autowired
-    public AdministratorService(UserDao userDao, ProductDao productDao, CategoryDao categoryDao, CommonDao commonDao, ServerProperties properties) {
+    public AdministratorService(UserDao userDao, ProductDao productDao, CommonDao commonDao, ServerProperties properties) {
         this.userDao = userDao;
         this.productDao = productDao;
-        this.categoryDao = categoryDao;
         this.commonDao = commonDao;
         this.properties = properties;
     }
@@ -55,23 +57,16 @@ public class AdministratorService extends ServiceBase{
         commonDao.clear();
     }
 
-
-// Ответ  должен  также  содержать  итоговые  значения  по  выборке.  Например,  если  возвращается  список
-//    покупок  некоторого  клиента,  в  ответ  надо  включить  их  суммарную  стоимость.  Также  необходимо  предусмотреть  вариант,  когда
-//    выдаются только итоговые значения, без подробностей - в тех случаях, когда это имеет смысл.
-//    Ввиду того, что данный запрос может возвращать очень много данных, следует предусмотреть пагинацию результатов, введя
-//    параметры запроса “offset” (номер строки результата, с которой начать выдачу) и “limit” (количество строк). Итоговые значения при
-//    этом приводятся для возвращаемой выборки, а не для всего списка.
-
     public SummaryListResponse getSummaryList(String token, boolean allInfo, List<Integer> categories, List<Integer> products, List<Integer> clients, int offset, int limit) throws ServerException {
         checkAdministratorPrivileges(userDao, token);
-        List<Client> clientList = null;
-//        List<Product> productList = null;
-//        List<Category> categoryList = null;
-        List<SummaryListByClient> summaryListByClients = new ArrayList<>();
+
+        List<SummaryListByClient> summaryListByClients = null;
+        List<SummaryListByCategory> summaryListByCategories = null;
+        List<SummaryListByProduct> summaryListByProducts = null;
 
         if(clients != null) {
-            clientList = userDao.getClientsById(clients);
+            summaryListByClients = new ArrayList<>();
+            List<Client> clientList = userDao.getClientsById(clients);
             if(clientList != null)
             for (Client it : clientList) {
                 int summaryAmount = 0;
@@ -93,6 +88,48 @@ public class AdministratorService extends ServiceBase{
                 summaryListByClients.add(new SummaryListByClient(clientInfo, purchaseResponses, summaryAmount));
             }
         }
-        return new SummaryListResponse(new ArrayList<>(), new ArrayList<>(), summaryListByClients);
+
+        if(products != null) {
+            List<Purchase> purchases = productDao.getPurchasesByProductsId(products);
+            Map<Product, List<Purchase>> map = new HashMap<>();
+            purchases.forEach((purchase -> {
+                Product product = purchase.getActual();
+                List<Purchase> list = map.computeIfAbsent(product, k -> new ArrayList<>());
+                list.add(purchase);
+            }));
+            summaryListByProducts = map.entrySet().stream().map((entry)->{
+                Product product = entry.getKey();
+                return new SummaryListByProduct(new GetProductResponse(product.getId(), product.getName(), product.getPrice(), product.getCounter(), null),
+                        makePurchasesResponse(entry.getValue()));
+            }).collect(Collectors.toList());
+        }
+
+        if(categories != null) {
+            summaryListByCategories = new ArrayList<>();
+            List<Category> categoriesList = productDao.getProductListOrderCategory(categories);
+            for (Category category : categoriesList) {
+                List<Purchase> purchases = productDao.getPurchasesByProducts(category.getProducts());
+                GetCategoryResponse getCategoryResponse;
+                if (category.getParent() != null) {
+                    getCategoryResponse = new GetCategoryResponse(category.getId(), category.getName(), category.getParent().getId(), category.getParent().getName());
+                } else {
+                    getCategoryResponse = new GetCategoryResponse(category.getId(), category.getName(), 0, null);
+                }
+                summaryListByCategories.add(new SummaryListByCategory(getCategoryResponse, makePurchasesResponseWithProductInfo(purchases)));
+            }
+        }
+        return new SummaryListResponse(summaryListByCategories, summaryListByProducts, summaryListByClients);
+    }
+    private List<PurchaseResponse> makePurchasesResponse(List<Purchase> purchases) {
+        return purchases.stream().map((purchase -> new PurchaseResponse(purchase.getId(), purchase.getName(), purchase.getBuyPrice(), purchase.getBuyCount()))).collect(Collectors.toList());
+    }
+    private List<PurchaseResponse> makePurchasesResponseWithProductInfo(List<Purchase> purchases) {
+        List<PurchaseResponse> list = new ArrayList<>();
+        for (Purchase purchase : purchases) {
+            Product product = purchase.getActual();
+            GetProductResponse productResponse = new GetProductResponse(product.getId(), product.getName(), product.getPrice(), product.getCounter(), getCategoriesListNames(product));
+            list.add(new PurchaseResponse(purchase.getId(), productResponse, purchase.getName(), purchase.getBuyPrice(), purchase.getBuyCount()));
+        }
+        return list;
     }
 }

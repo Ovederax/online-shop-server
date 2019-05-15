@@ -77,7 +77,8 @@ public enum ErrorCode {
     CANT_UPDATE_ADMINISTRATOR("", "Cant update administrator"),
     CANT_UPDATE_CLIENT("", "Cant update client"),
     CANT_ADD_ADMINISTRATOR("", "Cant add administrator"),
-    CANT_ADD_CLIENT("", "Cant add client");
+    CANT_ADD_CLIENT("", "Cant add client"),
+    CANT_GET_PURCHASES_LIST("", "Cant get purchases list");
     //------------------------------------------------------------------------------------------------
 
     private String message;

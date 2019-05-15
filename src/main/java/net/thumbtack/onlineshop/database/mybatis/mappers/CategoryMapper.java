@@ -23,7 +23,7 @@ public interface CategoryMapper {
             @Result(property = "parent", column = "parentId", javaType = Category.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
             @Result(property = "subCategories", column = "id", javaType = List.class,
-                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findCategoryById", fetchType = FetchType.LAZY)),
+                    many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.CategoryMapper.findSubCategoryByParentId", fetchType = FetchType.LAZY)),
             @Result(property = "products", column = "id", javaType = List.class,
                     many = @Many(select = "net.thumbtack.onlineshop.database.mybatis.mappers.ProductMapper.findProductsByCategoryId", fetchType = FetchType.LAZY))
     })
